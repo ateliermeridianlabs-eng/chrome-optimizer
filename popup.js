@@ -17,3 +17,22 @@ chrome.storage.sync.get(GO_DEFAULTS, s => {
 });
 
 document.getElementById('test').onclick = () => chrome.runtime.sendMessage({ type: 'test' });
+// Instagram with two chats side by side: two windows, left and right half of the screen
+document.getElementById('split').onclick = () => {
+  chrome.runtime.sendMessage({ type: 'split', screen: { left: screen.availLeft || 0, top: screen.availTop || 0, width: screen.availWidth, height: screen.availHeight } });
+  window.close();
+};
+
+// Gmail important senders
+chrome.storage.sync.get(GO_DEFAULTS, s => {
+  const el = document.getElementById('gmailImportant');
+  el.value = s.gmailImportant;
+  el.onchange = () => chrome.storage.sync.set({ gmailImportant: el.value }, saved);
+});
+
+// What the extension last noticed on claude.ai (helps when alerts don't arrive)
+chrome.storage.session.get(['claude-seen', 'claude-busy', 'claude-done'], s => {
+  document.getElementById('claudeStatus').textContent = s['claude-seen']
+    ? `Claude page seen ${s['claude-seen']} · working ${s['claude-busy'] || 'never'} · finished ${s['claude-done'] || 'never'}`
+    : 'No claude.ai tab seen yet: reload your Claude tab.';
+});

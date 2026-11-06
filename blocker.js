@@ -52,18 +52,22 @@
           'a[href^="/"]:not([href^="/direct/"]):not([href^="/accounts/"]):not(main a)',
           // shared reels: removed entirely, thumbnail included
           'a[href*="/reel/"]', 'a[href*="/reels/"]', '[role="button"]:has(a[href*="/reel/"])',
+          // shared posts (picture posts) too
+          'a[href*="/p/"]', '[role="button"]:has(a[href*="/p/"])',
           '[data-rb-reelmsg]'
         ],
         // Boring chat: grayscale, no plain videos, no photo upload. aria-labels are best guesses.
         igBoring: [
           // images, profile pictures, GIFs and stickers stay visible. Real videos are hidden;
           // looping videos are kept because GIFs are often delivered that way.
-          'video:not([loop])', 'canvas',
+          'video:not([loop])',
           // "Create"/new post button
           'a:has(svg[aria-label="New post" i])', '[role="link"]:has(svg[aria-label="New post" i])',
           '[role="button"]:has(svg[aria-label="New post" i])', 'a[href^="/create/"]',
-          // emoji, GIF/sticker, voice-note and call buttons are allowed; only photo/video upload stays hidden
-          'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]'
+          // voice messages (and their waveform) are allowed; emoji, GIF/sticker, voice-note and call buttons too; only photo/video upload stays hidden
+          'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]',
+          // no profile pictures inside an open chat (the chat list keeps them)
+          'html[data-rb-thread] main img:is([alt*="profile picture" i],[alt*="profile-picture" i]):not([data-rb-tlist] img)'
         ]
       },
       rawCss: {
@@ -78,17 +82,22 @@
           "html[data-rb-igboring] [data-rb-trow] [role=button]>div{padding:4px 16px!important}" +
           "html[data-rb-igboring] [data-rb-tav][data-rb-tav]{width:36px!important;height:36px!important;min-width:36px!important}" +
           "html[data-rb-igboring] [data-rb-trow=new] [role=button]>div{background:rgba(255,255,255,.08)!important}" +
-          "html [data-rb-bubble]{border-radius:0!important;background-image:none!important;box-shadow:none!important;border:1px solid #888!important}" +
-          "html [data-rb-bubble=me]{background-color:#fff!important;color:#000!important}" +
-          "html [data-rb-bubble=them]{background-color:#000!important;color:#fff!important}" +
-          "html [data-rb-bubble=me] *{color:#000!important;background:transparent!important}" +
-          "html [data-rb-bubble=them] *{color:#fff!important;background:transparent!important}"
+          // chat row: centre name on the avatar, preview on the same line to the right of the name
+          "html[data-rb-active-pane] body{box-shadow:inset 0 3px 0 #0095f6!important}" +
+          "html [data-rb-tin]{align-items:center!important}" +
+          "html [data-rb-tcol]{align-self:center!important;justify-content:center!important;margin-top:0!important;margin-bottom:0!important}" +
+          "html [data-rb-tline]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important}" +
+          "html [data-rb-tline]>*{margin:0!important;min-width:0!important}" +
+          // Messages are plain text: no bubble, no border, normal page text colour.
+          "html [data-rb-bubble]{border-radius:0!important;background:none!important;box-shadow:none!important;border:0!important;color:var(--rb-text,inherit)!important}" +
+          "html [data-rb-bubble] *{color:var(--rb-text,inherit)!important;background:transparent!important}"
       },
       textRules: function () {
         return [/^(suggested for you|suggested posts|suggested reels|suggestions for you)$/i, /^(sponsored|paid partnership.*)$/i];
       },
       flags: function (p) {
         set("data-rb-dm", /^\/direct\//.test(p));
+        set("data-rb-thread", /^\/direct\/t\//.test(p));
         set("data-rb-home", p === "/");
       },
       extraScan: function () {
@@ -96,6 +105,7 @@
         hideReelMsgs();
         boxBubbles();
         compactInbox();
+        if (pane === "right") hideLeftOfChat();
         filterNotifications();
       }
     },
@@ -218,7 +228,8 @@
     if (SITE.extraScan) SITE.extraScan();
     // Stop hidden videos from playing audio in the background.
     document.querySelectorAll("video").forEach(function (v) {
-      if (!v.paused && v.getClientRects().length === 0) { v.muted = true; v.pause(); }
+      // voice messages play through a hidden player with no picture (videoWidth 0): leave those alone
+      if (!v.paused && v.getClientRects().length === 0 && v.readyState >= 1 && v.videoWidth > 0) { v.muted = true; v.pause(); }
     });
   }
 
@@ -249,15 +260,27 @@
   // A shared reel may render as a card without a /reel/ link. Detect the reel icon or label and hide its card.
   function hideReelMsgs() {
     var marks = document.querySelectorAll('svg[aria-label="Reel" i], svg[aria-label="Reels" i], svg[aria-label="Clip" i], ' +
-      '[aria-label*="reel" i]:not(textarea):not([contenteditable]), a[href*="/reel/"]');
+      '[aria-label*="reel" i]:not(textarea):not([contenteditable]), a[href*="/reel/"], a[href*="/p/"]');
     var leafs = document.querySelectorAll("span, div");
     var list = Array.prototype.slice.call(marks);
     for (var i = 0; i < leafs.length; i++) {
       var n = leafs[i];
       if (n.childElementCount) continue;
       var t = n.textContent; if (!t || t.length > 80) continue;
-      if (/^reels?$|\b(sent|shared|forwarded) (you )?a reel\b|\breel by\b/i.test(t.trim())) list.push(n);
+      if (/^reels?$|\b(sent|shared|forwarded) (you )?a (reel|post)\b|\b(reel|post) by\b/i.test(t.trim())) list.push(n);
     }
+    // Shared posts show as a big picture with a bold caption under it, with no link. Your friends' own
+    // photos never have a caption, so: big picture + bold caption in the same message = shared post.
+    if (/^\/direct\/t\//.test(location.pathname)) document.querySelectorAll("main img").forEach(function (img) {
+      if (img.closest("[data-rb-reelmsg]") || img.getBoundingClientRect().width < 150) return;
+      for (var node = img.parentElement, d = 0; node && d < 8 && node.tagName !== "MAIN"; node = node.parentElement, d++) {
+        if (node.textContent.length > 400 || node.querySelector('[role="textbox"], [contenteditable="true"]')) return;
+        var bold = Array.prototype.some.call(node.querySelectorAll("span, div"), function (n) {
+          return !n.childElementCount && (n.textContent || "").trim().length >= 20 && weight(n) >= 600;
+        });
+        if (bold) { list.push(node); node.setAttribute("data-rb-reelmsg", ""); return; }
+      }
+    });
     list.forEach(function (el) {
       if (el.closest("[data-rb-reelmsg]")) return;
       // Inbox/thread-list preview ("Bob sent a reel", "You sent a reel"): hide only that line, never the chat row.
@@ -283,6 +306,11 @@
   }
   function boxBubbles() {
     if (!/^\/direct\/t\//.test(location.pathname)) return;
+    // text colour: white on a dark page, black on a light one
+    for (var bg = document.querySelector("main"); bg; bg = bg.parentElement) {
+      var c = getComputedStyle(bg).backgroundColor.match(/[\d.]+/g);
+      if (c && (c.length < 4 || +c[3] > 0)) { root.style.setProperty("--rb-text", (+c[0] + +c[1] + +c[2]) / 3 < 128 ? "#fff" : "#000"); break; }
+    }
     var texts = document.querySelectorAll('main [dir="auto"]:not([data-rb-seen])');
     for (var i = 0; i < texts.length; i++) {
       var t = texts[i];
@@ -297,6 +325,8 @@
         if (rad >= 8 && filled(cs)) { bubble = node; break; }
       }
       if (!bubble) { if (!t.getClientRects().length) t.removeAttribute("data-rb-seen"); continue; }
+      // voice notes, photos and other media keep Instagram's own look (plain-text style would erase the play button and waveform)
+      if (bubble.querySelector("svg, img, video, audio, canvas")) continue;
       // row = first ancestor clearly wider than the bubble
       var b = bubble.getBoundingClientRect(), row = bubble.parentElement;
       while (row && row.tagName !== "MAIN" && row.getBoundingClientRect().width < b.width * 1.6) row = row.parentElement;
@@ -377,6 +407,16 @@
         rest.some(function (n) { return weight(n) >= 600; }) ||
         (rest[0] && getComputedStyle(rest[0]).color === getComputedStyle(name).color);
       r.setAttribute("data-rb-trow", unread ? "new" : "read");
+      // Layout: name centred next to the profile picture, new-message preview to the right of the name.
+      var col = name;                                          // text column = name's ancestor that sits beside the avatar
+      while (col.parentElement && col.parentElement !== r && !(img && col.parentElement.contains(img))) col = col.parentElement;
+      col.setAttribute("data-rb-tcol", "");
+      if (col.parentElement) col.parentElement.setAttribute("data-rb-tin", "");
+      if (rest[0]) {                                           // lowest element holding both name and preview = one line
+        var line = name.parentElement;
+        while (line && line !== col && !line.contains(rest[0])) line = line.parentElement;
+        if (line && line.contains(rest[0])) line.setAttribute("data-rb-tline", "");
+      }
       // preview only when there is a new message
       rest.forEach(function (n) { unread ? n.removeAttribute("data-rb-hidden") : n.setAttribute("data-rb-hidden", ""); });
     });
@@ -703,6 +743,54 @@
       unsubOne(c).then(function (ok) { ok ? un.done++ : un.failed.push(c.name); drawUnsub(); setTimeout(next, 800); })
                  .catch(function () { un.failed.push(c.name); setTimeout(next, 800); });
     })();
+  }
+
+  // ---------- Instagram: two chats side by side ----------
+  // The popup opens two Instagram windows, left and right half of the screen (background.js).
+  //   left  = normal Instagram (chat list + chat A)
+  //   right = chat B only: everything to the left of the chat (menu bar, chat list) is hidden
+  // Click into a message box to make that side active (blue bar on top); a chat clicked in the list
+  // opens on the active side. (Instagram shows "page isn't available" inside frames, so windows it is.)
+  var pane = null, active = "right";
+  function paneState(m) {
+    if (!m) return;
+    pane = m.pane; active = m.active;
+    if (pane) root.setAttribute("data-rb-pane", pane);
+    set("data-rb-active-pane", pane && pane === active);
+  }
+  function hideLeftOfChat() {
+    var box = document.querySelector('[role="textbox"], [contenteditable="true"], textarea');
+    if (!box) return;
+    var chatLeft = box.getBoundingClientRect().left;
+    for (var el = box; el && el !== document.body; el = el.parentElement) {
+      var parent = el.parentElement;
+      if (!parent) break;
+      Array.prototype.forEach.call(parent.children, function (sib) {
+        if (sib === el || sib.contains(box)) return;
+        var r = sib.getBoundingClientRect();
+        if (r.width && r.right <= chatLeft + 2) sib.setAttribute("data-rb-hidden", "");
+      });
+    }
+  }
+  if (site === "ig" && window.top === window) {
+    api.runtime.sendMessage({ type: "split-hello" }, function (m) { void api.runtime.lastError; paneState(m); });
+    api.runtime.onMessage.addListener(function (m) { if (m.type === "split-state") paneState(m); });
+    // typing box clicked -> this side is active
+    document.addEventListener("focusin", function (e) {
+      if (pane && e.target.closest && e.target.closest('[role="textbox"], [contenteditable="true"], textarea')) api.runtime.sendMessage({ type: "split-active", pane: pane });
+    }, true);
+    // list clicked on the left while the right side is active -> open that chat on the right instead
+    document.addEventListener("click", function (e) {
+      if (pane !== "left" || active !== "right" || !e.target.closest("[data-rb-tlist]")) return;
+      var before = location.pathname, tries = 0;
+      var t = setInterval(function () {
+        if (++tries > 40) return clearInterval(t);
+        if (location.pathname === before || !/^\/direct\/t\//.test(location.pathname)) return;
+        clearInterval(t);
+        api.runtime.sendMessage({ type: "split-open", path: location.pathname });
+        history.back(); // left side goes back to the chat it had
+      }, 100);
+    }, true);
   }
 
   // ---------- Wiring ----------
