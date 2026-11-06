@@ -5,7 +5,7 @@ Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to 
 1. **Google Optimizer**: one Chrome extension (files in the repo root) that blocks distracting content, alerts you when Claude finishes a reply, and pins important Gmail at the top.
 2. **Minecraft Blocker** (`minecraft-blocker/`): a macOS background service that closes Minecraft Launcher, Lunar Client and the Minecraft game.
 
-> **Start here if you are new:** read "Current state" below first. `main` is out of date; the newest code is on the branch of PR #3 until PRs #1 and #3 are merged.
+> **Start here if you are new:** read "Current state" below first. The newest code is on `main`.
 
 ---
 
@@ -32,13 +32,14 @@ Default YouTube "subscriptions to keep": @veritasium, @kurzgesagt, @FlameFragsMC
 
 ### Branches and pull requests
 
-| Branch | PR | Contains | Status |
-|---|---|---|---|
-| `main` | | v3.0.0, the first version | Out of date |
-| `center-chat-names` | #1 into `main` | Instagram DM layout, split windows, voice notes, shared-post hiding, Claude Code detection, Gmail Important section (PR #2 was merged into this branch) | Open, not merged |
-| `claude/project-thread-529isg` | #3 into `center-chat-names` | v3.5.3: fixes the "Extension context invalidated" error, re-injects the Claude watcher into open tabs after a reload | Open, not merged. **Newest code.** |
+Everything is merged into `main` (v3.5.3). Old work branches (`center-chat-names`, `claude/project-thread-*`) are kept only for history.
 
-**Merge order:** merge #1 into `main` first, then retarget #3 to `main` and merge it. Merging #3 first only lands it in `center-chat-names`.
+| PR | What it added |
+|---|---|
+| #1 | Instagram DM layout, split windows, voice notes, shared-post hiding, Claude Code detection |
+| #2 | Gmail Important section (merged into #1's branch) |
+| #3 | v3.5.3: fixes the "Extension context invalidated" error, re-injects the Claude watcher into open tabs after a reload |
+| #4 | This README and the Minecraft Blocker |
 
 ### Done
 - Everything in the Goals table is built (extension v3.5.3, Minecraft Blocker v1).
@@ -60,7 +61,7 @@ Default YouTube "subscriptions to keep": @veritasium, @kurzgesagt, @FlameFragsMC
 
 ## Install the Chrome extension
 
-1. On GitHub, switch to the branch with the newest code (see table above; after merging, `main`), click **Code > Download ZIP**, and unzip it somewhere permanent (not Downloads, which gets cleaned).
+1. On GitHub, click **Code > Download ZIP**, and unzip it somewhere permanent (not Downloads, which gets cleaned).
 2. Open `chrome://extensions` and turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick the unzipped folder (the one with `manifest.json` directly inside).
 4. Pin the icon. Reload any open Instagram, YouTube, Gmail and claude.ai tabs.
