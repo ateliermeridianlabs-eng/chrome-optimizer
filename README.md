@@ -1,37 +1,109 @@
-# Google Optimizer (Chrome extension)
+# Google Optimizer
 
-One extension that replaces **Reels Blocker** and **Claude Done Alert**. Remove both old ones from `chrome://extensions` after installing this.
+Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to edit:
 
-## Install
-1. Unzip `google-optimizer.zip` somewhere permanent. You get one folder, `GoogleOptimizer`.
-2. Open `chrome://extensions` and turn on **Developer mode**.
-3. Click **Load unpacked** and pick the `GoogleOptimizer` folder (manifest.json is directly inside it).
-4. Pin the icon. Reload any open Instagram, YouTube and claude.ai tabs.
+1. **Google Optimizer**: one Chrome extension (files in the repo root) that blocks distracting content, alerts you when Claude finishes a reply, and pins important Gmail at the top.
+2. **Minecraft Blocker** (`minecraft-blocker/`): a macOS background service that closes Minecraft Launcher, Lunar Client and the Minecraft game.
 
-## What it does
-Always on, no switch:
-- Instagram locked to DMs only (same rules as Reels Blocker v2.8.0).
-- YouTube Shorts blocked.
-- YouTube focus mode: only allowed channels, home-feed channels, or videos whose title has an allowed keyword play. Home page shows your educational channels.
-- Facebook and Threads blocked.
-- Gmail: an **Important** section at the top of the inbox with mail from your important senders (edit the list in the popup).
+> **Start here if you are new:** read "Current state" below first. `main` is out of date; the newest code is on the branch of PR #3 until PRs #1 and #3 are merged.
 
-The popup lets you choose:
-- **When Claude finishes a reply:** Alert me (a window that stays until you click it), Switch to it (jumps to the Claude tab), or Off. Nothing happens if you are already looking at that Claude tab.
-- **YouTube lists:** allowed channels, keywords, home-feed channels, subscriptions to keep.
+---
 
-## Where to edit things
+## Goals
+
+| Goal | How |
+|---|---|
+| Instagram only for DMs | Every page except `/direct/...` (and login pages) redirects to the inbox. Reels are blocked everywhere, including reels and shared posts sent in DMs, both ways. |
+| Clean DM look | Compact chat list with colour profile pictures, names centred on the picture, a preview only for chats with new messages, no notes bar. Messages show as plain text (no bubbles). Voice notes still work. |
+| Two chats at once | Popup button "Open 2 chats side by side" opens two Instagram windows, left and right half of the screen. |
+| YouTube without junk | Shorts blocked. Focus mode: only allowed channels, home-feed channels, or videos whose title has an allowed keyword will play. Home page shows your educational channels. Subscriptions page keeps only the "keep" list. |
+| Facebook and Threads gone | Pages are replaced with "Facebook is blocked" / "Threads is blocked". |
+| Know when Claude is done | On claude.ai (chat and Claude Code pages), when a reply finishes: **Alert me** (a window that stays until clicked), **Switch to it** (jumps to the Claude tab), or **Off**. Nothing happens if you are already on that tab. |
+| Important Gmail first | An "Important" section at the top of the Gmail inbox with mail from chosen senders. |
+| No Minecraft | Minecraft Launcher, Lunar Client and the Java game are force-quit within 2 seconds; Dock icons removed. |
+
+Blocking has **no on/off switch on purpose**. The only choices in the popup are the Claude finish mode, the YouTube lists and the Gmail sender list.
+
+Default YouTube "subscriptions to keep": @veritasium, @kurzgesagt, @FlameFragsMC, @wemmbumc, @Spokeishere, @ParrotX2.
+
+---
+
+## Current state (6 Nov 2026)
+
+### Branches and pull requests
+
+| Branch | PR | Contains | Status |
+|---|---|---|---|
+| `main` | | v3.0.0, the first version | Out of date |
+| `center-chat-names` | #1 into `main` | Instagram DM layout, split windows, voice notes, shared-post hiding, Claude Code detection, Gmail Important section (PR #2 was merged into this branch) | Open, not merged |
+| `claude/project-thread-529isg` | #3 into `center-chat-names` | v3.5.3: fixes the "Extension context invalidated" error, re-injects the Claude watcher into open tabs after a reload | Open, not merged. **Newest code.** |
+
+**Merge order:** merge #1 into `main` first, then retarget #3 to `main` and merge it. Merging #3 first only lands it in `center-chat-names`.
+
+### Done
+- Everything in the Goals table is built (extension v3.5.3, Minecraft Blocker v1).
+- Confirmed working live by the user: Instagram side-by-side chats.
+- Claude Code "working" detection was taken from the live page markup.
+
+### Not verified / known limits
+- **Mostly tested on fake (mock) pages**, not the live sites. Instagram, YouTube and Gmail change their page code often; when a feature stops working the fix is usually a selector at the top of the matching file.
+- **Claude alert "Switch to it"** was reported failing before v3.5.3. The likely cause (stale script after an extension reload) is fixed in PR #3 but not yet confirmed live. The popup shows when a Claude page was last seen / working / finished, to help diagnose.
+- **Gmail Important** only sees emails loaded on the current inbox page. Older mail on later pages is not pulled in ("See all" runs a Gmail search for all of it). Not yet checked on live Gmail.
+- **Brightspace sender address is pending.** For now any sender containing "brightspace" or "d2l" counts. Replace those two lines with the real address once known.
+- **Instagram cannot be shown inside a frame** (it shows "page isn't available"), so side-by-side uses two real windows, not one tab.
+- **Scrolling the tab strip is not possible**: Chrome does not let extensions change the tab bar.
+- **Bookmarks scroll panel**: offered, not built.
+- **Minecraft Blocker** was tested with simulated processes on Linux only, never on a real Mac. The Dock cleanup has never run.
+- **Admin accounts can remove everything** (extension, lockdown profile, Minecraft Blocker). Real protection needs a Standard everyday account with someone else holding the admin password.
+
+---
+
+## Install the Chrome extension
+
+1. On GitHub, switch to the branch with the newest code (see table above; after merging, `main`), click **Code > Download ZIP**, and unzip it somewhere permanent (not Downloads, which gets cleaned).
+2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+3. Click **Load unpacked** and pick the unzipped folder (the one with `manifest.json` directly inside).
+4. Pin the icon. Reload any open Instagram, YouTube, Gmail and claude.ai tabs.
+5. If the old **Reels Blocker** or **Claude Done Alert** extensions are installed, remove them. This one replaces both.
+
+To update: replace the folder's files with the new ones, then click the reload arrow on the extension card in `chrome://extensions`.
+
+### Optional: make it hard to remove
+`lockdown/make-lockdown-profile.command` builds a macOS profile (needs a removal password, ideally typed by someone else). Run it in Terminal: `bash path/to/lockdown/make-lockdown-profile.command`, then open the `.mobileconfig` file it puts on your Desktop. It reuses the old Reels Blocker profile identifier, so it replaces that profile instead of adding a second one.
+
+## Install the Minecraft Blocker (macOS)
+
+Don't double-click (macOS refuses downloaded scripts). In Terminal:
+
+```
+bash path/to/minecraft-blocker/install.command
+```
+
+Type your Mac password (nothing shows while typing). Remove later with `bash /Library/MinecraftBlocker/uninstall.command`. Details in [`minecraft-blocker/README.md`](minecraft-blocker/README.md).
+
+---
+
+## File map
+
 | File | What's in it |
 |---|---|
-| `settings.js` | Default values for everything the popup can change. |
-| `blocker.js` | Instagram, YouTube, Facebook, Threads rules. Selectors are in `SITES` at the top. |
-| `claude.js` | How it spots that Claude finished (`BUSY` selector list at the top). |
-| `gmail.js` | Gmail Important section. Gmail's class names are at the top if it stops working. |
-| `background.js` | What happens when Claude finishes (alert window or tab switch). |
-| `popup.html` / `popup.js` | The popup you see when you click the icon. |
+| `manifest.json` | Extension name, version, which script runs on which site. Bump `version` on every change. |
+| `settings.js` | Default values for everything the popup can change (YouTube lists, Gmail senders, Claude mode). |
+| `blocker.js` | Instagram, YouTube, Facebook and Threads rules. Site selectors are in `SITES` near the top. |
+| `claude.js` | Detects when Claude is working / finished (`BUSY` selector list at the top). |
+| `background.js` | Alert window or tab switch when Claude finishes; opens the two Instagram windows; re-injects `claude.js` after a reload. |
+| `gmail.js` | Gmail Important section. Gmail class names at the top. |
+| `popup.html` / `popup.js` | The popup when you click the icon. |
 | `hud.html` / `hud.js` | The "Claude finished" alert window. |
+| `icons/` | Extension icons. |
+| `lockdown/` | Script that builds the macOS lockdown profile. |
+| `minecraft-blocker/` | `blocker.sh` (the watcher; edit `PATTERNS` to change what is blocked), `install.command`, `uninstall.command`, the LaunchDaemon `.plist`. |
 
-After editing, click the reload arrow on the extension in `chrome://extensions`.
+## Working on this repo
 
-## Lockdown (optional)
-`lockdown/make-lockdown-profile.command` builds the macOS profile that makes the extension hard to remove (same as before). It keeps the old profile identifier, so it replaces an existing Reels Blocker lockdown profile instead of adding a second one.
+- Keep code simple and readable; the owner edits it by hand.
+- Don't add on/off toggles for blocking.
+- Make changes on a branch and open a pull request. Don't push straight to `main`.
+- Bump `version` in `manifest.json` with each extension change.
+- Say in the PR what was tested and where (mock page vs live site).
+- `.zip` files are not committed. Build one from the folder when needed.
