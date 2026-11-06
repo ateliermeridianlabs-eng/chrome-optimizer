@@ -1,0 +1,49 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Google Optimizer</title>
+<style>
+  body { width: 340px; box-sizing: border-box; margin: 0; padding: 16px; font: 13px system-ui, sans-serif; color: #111; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { background: #1c1c1e; color: #eee; } .card { background: #2c2c2e !important; } }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #888; margin: 16px 0 6px; }
+  .card { background: #f2f2f5; border-radius: 12px; padding: 10px 12px; }
+  .on { display: flex; justify-content: space-between; padding: 3px 0; }
+  .on b { color: #2e9e4f; font-weight: 600; }
+  .seg { display: flex; gap: 4px; background: #8882; border-radius: 10px; padding: 3px; }
+  .seg button { flex: 1; border: 0; border-radius: 8px; padding: 8px 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+  .seg button.sel { background: #d97757; color: #fff; font-weight: 600; }
+  .hint { color: #888; font-size: 12px; margin-top: 6px; }
+  details { margin-top: 6px; } summary { cursor: pointer; padding: 4px 0; font-weight: 600; }
+  textarea { width: 100%; box-sizing: border-box; height: 80px; font: 12px ui-monospace, monospace; border: 1px solid #8886; border-radius: 8px; padding: 6px; background: inherit; color: inherit; }
+  #test { border: 0; background: none; color: #d97757; cursor: pointer; padding: 0; font: inherit; }
+  #saved { color: #2e9e4f; font-size: 12px; height: 14px; margin-top: 8px; }
+</style></head>
+<body>
+  <h1>Google Optimizer</h1>
+
+  <h2>Claude finishes a reply</h2>
+  <div class="seg" id="claudeMode">
+    <button data-v="alert">Alert me</button>
+    <button data-v="switch">Switch to it</button>
+    <button data-v="off">Off</button>
+  </div>
+  <div class="hint">Alert: a window that stays until you click it. Switch: jumps to the Claude tab. <button id="test">Test</button></div>
+
+  <h2>Always blocked</h2>
+  <div class="card">
+    <div class="on">Instagram (DMs only)<b>On</b></div>
+    <div class="on">YouTube Shorts<b>On</b></div>
+    <div class="on">YouTube focus mode<b>On</b></div>
+    <div class="on">Facebook and Threads<b>On</b></div>
+  </div>
+
+  <h2>YouTube lists</h2>
+  <details><summary>Allowed channels</summary><textarea id="ytAllowChannels"></textarea></details>
+  <details><summary>Allowed title keywords</summary><textarea id="ytAllowKeywords"></textarea></details>
+  <details><summary>Home feed channels</summary><textarea id="ytEduChannels"></textarea></details>
+  <details><summary>Subscriptions to keep</summary><textarea id="ytKeepSubs"></textarea></details>
+  <div class="hint">One @handle per line. Saved when you click away.</div>
+  <div id="saved"></div>
+
+  <script src="settings.js"></script>
+  <script src="popup.js"></script>
+</body></html>
