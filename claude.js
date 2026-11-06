@@ -3,7 +3,9 @@
   // Claude counts as working while any of these is on the page. If alerts stop after a
   // claude.ai redesign, inspect the Stop button and add its selector here.
   const BUSY = [
-    '[data-is-streaming="true"]',
+    '[data-cds="TurnStatus"][data-state="busy"]',   // Claude Code / projects: "Claude is working" status
+    '[data-cds="ChatComposer"][data-busy="true"]',   // Claude Code / projects: message box while working
+    '[data-is-streaming="true"]',                    // normal chats: reply still streaming
     'button[aria-label*="Stop" i]',
     'button[aria-label*="Interrupt" i]'
   ].join(',');
@@ -23,6 +25,6 @@
     }
   }
   // MutationObserver keeps working in background tabs (timers get slowed down there)
-  new MutationObserver(check).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-is-streaming', 'aria-label'] });
+  new MutationObserver(check).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-is-streaming', 'aria-label', 'data-state', 'data-busy'] });
   check();
 })();
