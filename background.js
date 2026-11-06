@@ -43,13 +43,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
   }
   if (msg.type === 'hud-go') { goToTab(msg.tabId).catch(() => {}); closeAlert(); }
   if (msg.type === 'hud-dismiss') closeAlert();
-  if (msg.type === 'split') {
-    // Two Instagram DM windows, left and right half of the screen. Pick a different chat in each.
-    const { left, top, width, height } = msg.screen, half = Math.floor(width / 2);
-    for (const x of [left, left + half]) {
-      chrome.windows.create({ url: 'https://www.instagram.com/direct/inbox/', type: 'popup', left: x, top, width: half, height });
-    }
-  }
   if (msg.type === 'test') {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     showAlert(tab, 'Test alert');

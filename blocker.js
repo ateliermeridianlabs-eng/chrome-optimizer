@@ -63,7 +63,9 @@
           'a:has(svg[aria-label="New post" i])', '[role="link"]:has(svg[aria-label="New post" i])',
           '[role="button"]:has(svg[aria-label="New post" i])', 'a[href^="/create/"]',
           // emoji, GIF/sticker, voice-note and call buttons are allowed; only photo/video upload stays hidden
-          'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]'
+          'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]',
+          // no profile pictures inside an open chat (the chat list keeps them)
+          'html[data-rb-thread] main img:is([alt*="profile picture" i],[alt*="profile-picture" i]):not([data-rb-tlist] img)'
         ]
       },
       rawCss: {
@@ -92,6 +94,7 @@
       },
       flags: function (p) {
         set("data-rb-dm", /^\/direct\//.test(p));
+        set("data-rb-thread", /^\/direct\/t\//.test(p));
         set("data-rb-home", p === "/");
       },
       extraScan: function () {
@@ -721,6 +724,28 @@
       unsubOne(c).then(function (ok) { ok ? un.done++ : un.failed.push(c.name); drawUnsub(); setTimeout(next, 800); })
                  .catch(function () { un.failed.push(c.name); setTimeout(next, 800); });
     })();
+  }
+
+  // ---------- Instagram: two chats side by side ----------
+  // Opened from the popup as instagram.com/direct/inbox/#split. Two Instagram frames cover the page;
+  // rules.json lets Instagram load inside a frame (it normally refuses with X-Frame-Options: DENY).
+  function splitView() {
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;background:#000";
+    ["left", "right"].forEach(function (side) {
+      var f = document.createElement("iframe");
+      f.src = "/direct/inbox/";
+      f.style.cssText = "flex:1;height:100%;border:0;" + (side === "left" ? "border-right:1px solid #444" : "");
+      wrap.appendChild(f);
+    });
+    var x = document.createElement("button");
+    x.textContent = "Close split";
+    x.style.cssText = "position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:6px 14px;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer";
+    x.onclick = function () { wrap.remove(); x.remove(); history.replaceState(null, "", location.pathname); };
+    document.body.appendChild(wrap); document.body.appendChild(x);
+  }
+  if (site === "ig" && window.top === window && location.hash === "#split") {
+    if (document.body) splitView(); else document.addEventListener("DOMContentLoaded", splitView);
   }
 
   // ---------- Wiring ----------
