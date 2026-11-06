@@ -15,6 +15,7 @@
   details { margin-top: 6px; } summary { cursor: pointer; padding: 4px 0; font-weight: 600; }
   textarea { width: 100%; box-sizing: border-box; height: 80px; font: 12px ui-monospace, monospace; border: 1px solid #8886; border-radius: 8px; padding: 6px; background: inherit; color: inherit; }
   #test { border: 0; background: none; color: #d97757; cursor: pointer; padding: 0; font: inherit; }
+  .wide { width: 100%; border: 0; border-radius: 10px; padding: 9px; background: #8882; color: inherit; font: inherit; font-weight: 600; cursor: pointer; }
   #saved { color: #2e9e4f; font-size: 12px; height: 14px; margin-top: 8px; }
 </style></head>
 <body>
@@ -27,6 +28,9 @@
     <button data-v="off">Off</button>
   </div>
   <div class="hint">Alert: a window that stays until you click it. Switch: jumps to the Claude tab. <button id="test">Test</button></div>
+
+  <h2>Instagram</h2>
+  <button id="split" class="wide">Open 2 chats side by side</button>
 
   <h2>Always blocked</h2>
   <div class="card">

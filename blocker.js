@@ -83,11 +83,9 @@
           "html [data-rb-tcol]{align-self:center!important;justify-content:center!important;margin-top:0!important;margin-bottom:0!important}" +
           "html [data-rb-tline]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important}" +
           "html [data-rb-tline]>*{margin:0!important;min-width:0!important}" +
-          "html [data-rb-bubble]{border-radius:0!important;background-image:none!important;box-shadow:none!important;border:1px solid #888!important}" +
-          "html [data-rb-bubble=me]{background-color:#fff!important;color:#000!important}" +
-          "html [data-rb-bubble=them]{background-color:#000!important;color:#fff!important}" +
-          "html [data-rb-bubble=me] *{color:#000!important;background:transparent!important}" +
-          "html [data-rb-bubble=them] *{color:#fff!important;background:transparent!important}"
+          // Messages are plain text: no bubble, no border, normal page text colour.
+          "html [data-rb-bubble]{border-radius:0!important;background:none!important;box-shadow:none!important;border:0!important;color:var(--rb-text,inherit)!important}" +
+          "html [data-rb-bubble] *{color:var(--rb-text,inherit)!important;background:transparent!important}"
       },
       textRules: function () {
         return [/^(suggested for you|suggested posts|suggested reels|suggestions for you)$/i, /^(sponsored|paid partnership.*)$/i];
@@ -288,6 +286,11 @@
   }
   function boxBubbles() {
     if (!/^\/direct\/t\//.test(location.pathname)) return;
+    // text colour: white on a dark page, black on a light one
+    for (var bg = document.querySelector("main"); bg; bg = bg.parentElement) {
+      var c = getComputedStyle(bg).backgroundColor.match(/[\d.]+/g);
+      if (c && (c.length < 4 || +c[3] > 0)) { root.style.setProperty("--rb-text", (+c[0] + +c[1] + +c[2]) / 3 < 128 ? "#fff" : "#000"); break; }
+    }
     var texts = document.querySelectorAll('main [dir="auto"]:not([data-rb-seen])');
     for (var i = 0; i < texts.length; i++) {
       var t = texts[i];

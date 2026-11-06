@@ -17,3 +17,8 @@ chrome.storage.sync.get(GO_DEFAULTS, s => {
 });
 
 document.getElementById('test').onclick = () => chrome.runtime.sendMessage({ type: 'test' });
+document.getElementById('split').onclick = () => {
+  const screenSize = { left: screen.availLeft || 0, top: screen.availTop || 0, width: screen.availWidth, height: screen.availHeight };
+  chrome.runtime.sendMessage({ type: 'split', screen: screenSize });
+  window.close();
+};
