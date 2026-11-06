@@ -52,17 +52,19 @@
           'a[href^="/"]:not([href^="/direct/"]):not([href^="/accounts/"]):not(main a)',
           // shared reels: removed entirely, thumbnail included
           'a[href*="/reel/"]', 'a[href*="/reels/"]', '[role="button"]:has(a[href*="/reel/"])',
+          // shared posts (picture posts) too
+          'a[href*="/p/"]', '[role="button"]:has(a[href*="/p/"])',
           '[data-rb-reelmsg]'
         ],
         // Boring chat: grayscale, no plain videos, no photo upload. aria-labels are best guesses.
         igBoring: [
           // images, profile pictures, GIFs and stickers stay visible. Real videos are hidden;
           // looping videos are kept because GIFs are often delivered that way.
-          'video:not([loop])', 'canvas',
+          'video:not([loop])',
           // "Create"/new post button
           'a:has(svg[aria-label="New post" i])', '[role="link"]:has(svg[aria-label="New post" i])',
           '[role="button"]:has(svg[aria-label="New post" i])', 'a[href^="/create/"]',
-          // emoji, GIF/sticker, voice-note and call buttons are allowed; only photo/video upload stays hidden
+          // voice messages (and their waveform) are allowed; emoji, GIF/sticker, voice-note and call buttons too; only photo/video upload stays hidden
           'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]',
           // no profile pictures inside an open chat (the chat list keeps them)
           'html[data-rb-thread] main img:is([alt*="profile picture" i],[alt*="profile-picture" i]):not([data-rb-tlist] img)'
@@ -226,7 +228,8 @@
     if (SITE.extraScan) SITE.extraScan();
     // Stop hidden videos from playing audio in the background.
     document.querySelectorAll("video").forEach(function (v) {
-      if (!v.paused && v.getClientRects().length === 0) { v.muted = true; v.pause(); }
+      // voice messages play through a hidden player with no picture (videoWidth 0): leave those alone
+      if (!v.paused && v.getClientRects().length === 0 && v.readyState >= 1 && v.videoWidth > 0) { v.muted = true; v.pause(); }
     });
   }
 
@@ -257,14 +260,14 @@
   // A shared reel may render as a card without a /reel/ link. Detect the reel icon or label and hide its card.
   function hideReelMsgs() {
     var marks = document.querySelectorAll('svg[aria-label="Reel" i], svg[aria-label="Reels" i], svg[aria-label="Clip" i], ' +
-      '[aria-label*="reel" i]:not(textarea):not([contenteditable]), a[href*="/reel/"]');
+      '[aria-label*="reel" i]:not(textarea):not([contenteditable]), a[href*="/reel/"], a[href*="/p/"]');
     var leafs = document.querySelectorAll("span, div");
     var list = Array.prototype.slice.call(marks);
     for (var i = 0; i < leafs.length; i++) {
       var n = leafs[i];
       if (n.childElementCount) continue;
       var t = n.textContent; if (!t || t.length > 80) continue;
-      if (/^reels?$|\b(sent|shared|forwarded) (you )?a reel\b|\breel by\b/i.test(t.trim())) list.push(n);
+      if (/^reels?$|\b(sent|shared|forwarded) (you )?a (reel|post)\b|\b(reel|post) by\b/i.test(t.trim())) list.push(n);
     }
     list.forEach(function (el) {
       if (el.closest("[data-rb-reelmsg]")) return;
