@@ -78,6 +78,11 @@
           "html[data-rb-igboring] [data-rb-trow] [role=button]>div{padding:4px 16px!important}" +
           "html[data-rb-igboring] [data-rb-tav][data-rb-tav]{width:36px!important;height:36px!important;min-width:36px!important}" +
           "html[data-rb-igboring] [data-rb-trow=new] [role=button]>div{background:rgba(255,255,255,.08)!important}" +
+          // chat row: centre name on the avatar, preview on the same line to the right of the name
+          "html [data-rb-tin]{align-items:center!important}" +
+          "html [data-rb-tcol]{align-self:center!important;justify-content:center!important;margin-top:0!important;margin-bottom:0!important}" +
+          "html [data-rb-tline]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important}" +
+          "html [data-rb-tline]>*{margin:0!important;min-width:0!important}" +
           "html [data-rb-bubble]{border-radius:0!important;background-image:none!important;box-shadow:none!important;border:1px solid #888!important}" +
           "html [data-rb-bubble=me]{background-color:#fff!important;color:#000!important}" +
           "html [data-rb-bubble=them]{background-color:#000!important;color:#fff!important}" +
@@ -377,6 +382,16 @@
         rest.some(function (n) { return weight(n) >= 600; }) ||
         (rest[0] && getComputedStyle(rest[0]).color === getComputedStyle(name).color);
       r.setAttribute("data-rb-trow", unread ? "new" : "read");
+      // Layout: name centred next to the profile picture, new-message preview to the right of the name.
+      var col = name;                                          // text column = name's ancestor that sits beside the avatar
+      while (col.parentElement && col.parentElement !== r && !(img && col.parentElement.contains(img))) col = col.parentElement;
+      col.setAttribute("data-rb-tcol", "");
+      if (col.parentElement) col.parentElement.setAttribute("data-rb-tin", "");
+      if (rest[0]) {                                           // lowest element holding both name and preview = one line
+        var line = name.parentElement;
+        while (line && line !== col && !line.contains(rest[0])) line = line.parentElement;
+        if (line && line.contains(rest[0])) line.setAttribute("data-rb-tline", "");
+      }
       // preview only when there is a new message
       rest.forEach(function (n) { unread ? n.removeAttribute("data-rb-hidden") : n.setAttribute("data-rb-hidden", ""); });
     });
