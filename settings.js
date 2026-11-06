@@ -12,3 +12,7 @@ var GO_DEFAULTS = {
   // Subscriptions cleanup on youtube.com/feed/channels keeps only these
   ytKeepSubs: "@veritasium\n@kurzgesagt\n@FlameFragsMC\n@wemmbumc\n@Spokeishere\n@ParrotX2"
 };
+
+// Gmail: mail from these goes in the "Important" section at the top of the inbox (gmail.js).
+// One per line: full address, a domain (anyone @that domain), or a word found in the sender's address or name.
+GO_DEFAULTS.gmailImportant = "hssandy168@gmail.com\nhssandy168@126.com\nsuwj168@126.com\nstarkmh002@gmail.com\nbounce.torontopubliclibrary.ca\nbrightspace\nd2l";

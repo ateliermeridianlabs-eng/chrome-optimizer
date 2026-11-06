@@ -14,6 +14,7 @@ Always on, no switch:
 - YouTube Shorts blocked.
 - YouTube focus mode: only allowed channels, home-feed channels, or videos whose title has an allowed keyword play. Home page shows your educational channels.
 - Facebook and Threads blocked.
+- Gmail: an **Important** section at the top of the inbox with mail from your important senders (edit the list in the popup).
 
 The popup lets you choose:
 - **When Claude finishes a reply:** Alert me (a window that stays until you click it), Switch to it (jumps to the Claude tab), or Off. Nothing happens if you are already looking at that Claude tab.
@@ -25,6 +26,7 @@ The popup lets you choose:
 | `settings.js` | Default values for everything the popup can change. |
 | `blocker.js` | Instagram, YouTube, Facebook, Threads rules. Selectors are in `SITES` at the top. |
 | `claude.js` | How it spots that Claude finished (`BUSY` selector list at the top). |
+| `gmail.js` | Gmail Important section. Gmail's class names are at the top if it stops working. |
 | `background.js` | What happens when Claude finishes (alert window or tab switch). |
 | `popup.html` / `popup.js` | The popup you see when you click the icon. |
 | `hud.html` / `hud.js` | The "Claude finished" alert window. |

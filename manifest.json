@@ -47,6 +47,15 @@
     },
     {
       "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "settings.js",
+        "gmail.js"
+      ]
+    },
+    {
+      "matches": [
         "https://claude.ai/*"
       ],
       "js": [

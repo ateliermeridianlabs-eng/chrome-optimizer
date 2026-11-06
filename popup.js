@@ -19,3 +19,10 @@ chrome.storage.sync.get(GO_DEFAULTS, s => {
 document.getElementById('test').onclick = () => chrome.runtime.sendMessage({ type: 'test' });
 // Instagram with two chats side by side, in a new tab
 document.getElementById('split').onclick = () => chrome.tabs.create({ url: 'https://www.instagram.com/direct/inbox/#split' });
+
+// Gmail important senders
+chrome.storage.sync.get(GO_DEFAULTS, s => {
+  const el = document.getElementById('gmailImportant');
+  el.value = s.gmailImportant;
+  el.onchange = () => chrome.storage.sync.set({ gmailImportant: el.value }, saved);
+});
