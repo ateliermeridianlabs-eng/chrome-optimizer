@@ -102,6 +102,7 @@
         hideReelMsgs();
         boxBubbles();
         compactInbox();
+        if (pane) splitPane();
         filterNotifications();
       }
     },
@@ -727,25 +728,73 @@
   }
 
   // ---------- Instagram: two chats side by side ----------
-  // Opened from the popup as instagram.com/direct/inbox/#split. Two Instagram frames cover the page;
+  // Opened from the popup as instagram.com/direct/inbox/#split. Two Instagram frames cover the page:
+  //   left  = normal Instagram (chat list + chat A)
+  //   right = chat B only (the frame is shifted left so its own chat list is cut off)
+  // Click into a message box to make that side active; clicking a chat in the list opens it on the active side.
   // rules.json lets Instagram load inside a frame (it normally refuses with X-Frame-Options: DENY).
+  var TOP = root; // in split view: the outer page (same-origin, so the frames can reach it)
+  try { TOP = window.top.document.documentElement; } catch (e) {}
+  var pane = null;
+  try { pane = window.frameElement && window.frameElement.getAttribute("data-rb-pane"); } catch (e) {}
+
   function splitView() {
+    TOP.setAttribute("data-rb-active", "right");
+    var css = document.createElement("style");
+    css.textContent =
+      "#rb-split{position:fixed;inset:0;z-index:2147483647;display:flex;background:#000}" +
+      "#rb-split>div{position:relative;overflow:hidden;border-top:3px solid #222}" +
+      "#rb-split>[data-side=left]{flex:none;width:calc(var(--rb-listw,0px) + (100% - var(--rb-listw,0px)) / 2);border-right:1px solid #444}" +
+      "#rb-split>[data-side=right]{flex:1}" +
+      "html[data-rb-active=left] #rb-split>[data-side=left],html[data-rb-active=right] #rb-split>[data-side=right]{border-top-color:#0095f6}" +
+      "#rb-split iframe{border:0;height:100%;width:100%}" +
+      "#rb-split>[data-side=right] iframe{width:calc(100% + var(--rb-clip,0px));margin-left:calc(-1 * var(--rb-clip,0px))}";
     var wrap = document.createElement("div");
-    wrap.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;background:#000";
+    wrap.id = "rb-split";
     ["left", "right"].forEach(function (side) {
-      var f = document.createElement("iframe");
+      var box = document.createElement("div"), f = document.createElement("iframe");
+      box.setAttribute("data-side", side);
+      f.setAttribute("data-rb-pane", side);
       f.src = "/direct/inbox/";
-      f.style.cssText = "flex:1;height:100%;border:0;" + (side === "left" ? "border-right:1px solid #444" : "");
-      wrap.appendChild(f);
+      box.appendChild(f); wrap.appendChild(box);
     });
     var x = document.createElement("button");
     x.textContent = "Close split";
-    x.style.cssText = "position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:6px 14px;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer";
-    x.onclick = function () { wrap.remove(); x.remove(); history.replaceState(null, "", location.pathname); };
-    document.body.appendChild(wrap); document.body.appendChild(x);
+    x.style.cssText = "position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:4px 12px;font-size:12px;opacity:.8;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer";
+    x.onclick = function () { wrap.remove(); x.remove(); css.remove(); history.replaceState(null, "", location.pathname); };
+    document.head.appendChild(css); document.body.appendChild(wrap); document.body.appendChild(x);
   }
   if (site === "ig" && window.top === window && location.hash === "#split") {
     if (document.body) splitView(); else document.addEventListener("DOMContentLoaded", splitView);
+  }
+
+  // Inside a pane: measure where the chat starts, so the page can size and cut the frames.
+  function splitPane() {
+    var list = document.querySelector("[data-rb-tlist]");
+    if (!list) return;
+    var box = document.querySelector('[role="textbox"], [contenteditable="true"], textarea'), chat = box;
+    while (chat && chat.parentElement && !chat.parentElement.contains(list)) chat = chat.parentElement;
+    var x = Math.round(box ? chat.getBoundingClientRect().left : list.getBoundingClientRect().right);
+    var name = pane === "left" ? "--rb-listw" : "--rb-clip";
+    if (x > 0 && TOP.style.getPropertyValue(name) !== x + "px") TOP.style.setProperty(name, x + "px");
+  }
+  if (site === "ig" && pane) {
+    // typing box clicked -> this side is active
+    document.addEventListener("focusin", function (e) {
+      if (e.target.closest && e.target.closest('[role="textbox"], [contenteditable="true"], textarea')) TOP.setAttribute("data-rb-active", pane);
+    }, true);
+    // left list clicked while the right side is active -> open that chat on the right instead
+    if (pane === "left") document.addEventListener("click", function (e) {
+      if (TOP.getAttribute("data-rb-active") !== "right" || !e.target.closest("[data-rb-tlist]")) return;
+      var before = location.pathname, tries = 0;
+      var t = setInterval(function () {
+        if (++tries > 40) return clearInterval(t);
+        if (location.pathname === before || !/^\/direct\/t\//.test(location.pathname)) return;
+        clearInterval(t);
+        window.top.document.querySelector('iframe[data-rb-pane="right"]').contentWindow.location.replace(location.pathname);
+        history.back(); // left side goes back to the chat it had
+      }, 100);
+    }, true);
   }
 
   // ---------- Wiring ----------
