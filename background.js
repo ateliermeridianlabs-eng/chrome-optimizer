@@ -27,6 +27,14 @@ async function closeAlert() {
   if (hud) chrome.windows.remove(hud).catch(() => {});
 }
 
+// When the extension is installed, updated or reloaded, open claude.ai tabs still run the old,
+// disconnected claude.js. Put a fresh copy in them so alerts work without reloading those tabs.
+chrome.runtime.onInstalled.addListener(async () => {
+  for (const tab of await chrome.tabs.query({ url: 'https://claude.ai/*' })) {
+    chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['claude.js'] }).catch(() => {});
+  }
+});
+
 chrome.windows.onRemoved.addListener(async id => {
   const { hud } = await chrome.storage.session.get('hud');
   if (id === hud) chrome.storage.session.set({ items: [], hud: null });
