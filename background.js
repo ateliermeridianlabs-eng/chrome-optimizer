@@ -47,7 +47,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.type === 'split') {
     const { left, top, width, height } = msg.screen, half = Math.floor(width / 2), split = { active: 'right' };
     for (const [pane, x] of [['left', left], ['right', left + half]]) {
-      const w = await chrome.windows.create({ url: 'https://www.instagram.com/direct/inbox/', type: 'popup', left: x, top, width: half, height });
+      const w = await chrome.windows.create({ url: 'https://www.instagram.com/direct/inbox/', type: 'normal', left: x, top, width: half, height });
       split[pane] = w.tabs[0].id;
     }
     await chrome.storage.session.set({ split });
