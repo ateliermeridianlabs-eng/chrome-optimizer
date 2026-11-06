@@ -43,6 +43,24 @@ chrome.runtime.onMessage.addListener(async (msg, sender) => {
   }
   if (msg.type === 'hud-go') { goToTab(msg.tabId).catch(() => {}); closeAlert(); }
   if (msg.type === 'hud-dismiss') closeAlert();
+  // ---- Instagram split: two windows, one chat list ----
+  if (msg.type === 'split') {
+    const { left, top, width, height } = msg.screen, half = Math.floor(width / 2), split = { active: 'right' };
+    for (const [pane, x] of [['left', left], ['right', left + half]]) {
+      const w = await chrome.windows.create({ url: 'https://www.instagram.com/direct/inbox/', type: 'popup', left: x, top, width: half, height });
+      split[pane] = w.tabs[0].id;
+    }
+    await chrome.storage.session.set({ split });
+  }
+  if (msg.type === 'split-hello' || msg.type === 'split-active' || msg.type === 'split-open') {
+    const { split } = await chrome.storage.session.get('split');
+    if (!split) return;
+    if (msg.type === 'split-active') { split.active = msg.pane; await chrome.storage.session.set({ split }); }
+    if (msg.type === 'split-open') chrome.tabs.update(split.right, { url: 'https://www.instagram.com' + msg.path });
+    for (const pane of ['left', 'right']) {
+      chrome.tabs.sendMessage(split[pane], { type: 'split-state', pane, active: split.active }).catch(() => {});
+    }
+  }
   if (msg.type === 'test') {
     const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     showAlert(tab, 'Test alert');

@@ -81,6 +81,7 @@
           "html[data-rb-igboring] [data-rb-tav][data-rb-tav]{width:36px!important;height:36px!important;min-width:36px!important}" +
           "html[data-rb-igboring] [data-rb-trow=new] [role=button]>div{background:rgba(255,255,255,.08)!important}" +
           // chat row: centre name on the avatar, preview on the same line to the right of the name
+          "html[data-rb-active-pane] body{box-shadow:inset 0 3px 0 #0095f6!important}" +
           "html [data-rb-tin]{align-items:center!important}" +
           "html [data-rb-tcol]{align-self:center!important;justify-content:center!important;margin-top:0!important;margin-bottom:0!important}" +
           "html [data-rb-tline]{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important}" +
@@ -102,7 +103,7 @@
         hideReelMsgs();
         boxBubbles();
         compactInbox();
-        if (pane) splitPane();
+        if (pane === "right") hideLeftOfChat();
         filterNotifications();
       }
     },
@@ -728,70 +729,48 @@
   }
 
   // ---------- Instagram: two chats side by side ----------
-  // Opened from the popup as instagram.com/direct/inbox/#split. Two Instagram frames cover the page:
+  // The popup opens two Instagram windows, left and right half of the screen (background.js).
   //   left  = normal Instagram (chat list + chat A)
-  //   right = chat B only (the frame is shifted left so its own chat list is cut off)
-  // Click into a message box to make that side active; clicking a chat in the list opens it on the active side.
-  // rules.json lets Instagram load inside a frame (it normally refuses with X-Frame-Options: DENY).
-  var TOP = root; // in split view: the outer page (same-origin, so the frames can reach it)
-  try { TOP = window.top.document.documentElement; } catch (e) {}
-  var pane = null;
-  try { pane = window.frameElement && window.frameElement.getAttribute("data-rb-pane"); } catch (e) {}
-
-  function splitView() {
-    TOP.setAttribute("data-rb-active", "right");
-    var css = document.createElement("style");
-    css.textContent =
-      "#rb-split{position:fixed;inset:0;z-index:2147483647;display:flex;background:#000}" +
-      "#rb-split>div{position:relative;overflow:hidden;border-top:3px solid #222}" +
-      "#rb-split>[data-side=left]{flex:none;width:calc(var(--rb-listw,0px) + (100% - var(--rb-listw,0px)) / 2);border-right:1px solid #444}" +
-      "#rb-split>[data-side=right]{flex:1}" +
-      "html[data-rb-active=left] #rb-split>[data-side=left],html[data-rb-active=right] #rb-split>[data-side=right]{border-top-color:#0095f6}" +
-      "#rb-split iframe{border:0;height:100%;width:100%}" +
-      "#rb-split>[data-side=right] iframe{width:calc(100% + var(--rb-clip,0px));margin-left:calc(-1 * var(--rb-clip,0px))}";
-    var wrap = document.createElement("div");
-    wrap.id = "rb-split";
-    ["left", "right"].forEach(function (side) {
-      var box = document.createElement("div"), f = document.createElement("iframe");
-      box.setAttribute("data-side", side);
-      f.setAttribute("data-rb-pane", side);
-      f.src = "/direct/inbox/";
-      box.appendChild(f); wrap.appendChild(box);
-    });
-    var x = document.createElement("button");
-    x.textContent = "Close split";
-    x.style.cssText = "position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:2147483647;padding:4px 12px;font-size:12px;opacity:.8;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer";
-    x.onclick = function () { wrap.remove(); x.remove(); css.remove(); history.replaceState(null, "", location.pathname); };
-    document.head.appendChild(css); document.body.appendChild(wrap); document.body.appendChild(x);
+  //   right = chat B only: everything to the left of the chat (menu bar, chat list) is hidden
+  // Click into a message box to make that side active (blue bar on top); a chat clicked in the list
+  // opens on the active side. (Instagram shows "page isn't available" inside frames, so windows it is.)
+  var pane = null, active = "right";
+  function paneState(m) {
+    if (!m) return;
+    pane = m.pane; active = m.active;
+    if (pane) root.setAttribute("data-rb-pane", pane);
+    set("data-rb-active-pane", pane && pane === active);
   }
-  if (site === "ig" && window.top === window && location.hash === "#split") {
-    if (document.body) splitView(); else document.addEventListener("DOMContentLoaded", splitView);
+  function hideLeftOfChat() {
+    var box = document.querySelector('[role="textbox"], [contenteditable="true"], textarea');
+    if (!box) return;
+    var chatLeft = box.getBoundingClientRect().left;
+    for (var el = box; el && el !== document.body; el = el.parentElement) {
+      var parent = el.parentElement;
+      if (!parent) break;
+      Array.prototype.forEach.call(parent.children, function (sib) {
+        if (sib === el || sib.contains(box)) return;
+        var r = sib.getBoundingClientRect();
+        if (r.width && r.right <= chatLeft + 2) sib.setAttribute("data-rb-hidden", "");
+      });
+    }
   }
-
-  // Inside a pane: measure where the chat starts, so the page can size and cut the frames.
-  function splitPane() {
-    var list = document.querySelector("[data-rb-tlist]");
-    if (!list) return;
-    var box = document.querySelector('[role="textbox"], [contenteditable="true"], textarea'), chat = box;
-    while (chat && chat.parentElement && !chat.parentElement.contains(list)) chat = chat.parentElement;
-    var x = Math.round(box ? chat.getBoundingClientRect().left : list.getBoundingClientRect().right);
-    var name = pane === "left" ? "--rb-listw" : "--rb-clip";
-    if (x > 0 && TOP.style.getPropertyValue(name) !== x + "px") TOP.style.setProperty(name, x + "px");
-  }
-  if (site === "ig" && pane) {
+  if (site === "ig" && window.top === window) {
+    api.runtime.sendMessage({ type: "split-hello" }, function (m) { void api.runtime.lastError; paneState(m); });
+    api.runtime.onMessage.addListener(function (m) { if (m.type === "split-state") paneState(m); });
     // typing box clicked -> this side is active
     document.addEventListener("focusin", function (e) {
-      if (e.target.closest && e.target.closest('[role="textbox"], [contenteditable="true"], textarea')) TOP.setAttribute("data-rb-active", pane);
+      if (pane && e.target.closest && e.target.closest('[role="textbox"], [contenteditable="true"], textarea')) api.runtime.sendMessage({ type: "split-active", pane: pane });
     }, true);
-    // left list clicked while the right side is active -> open that chat on the right instead
-    if (pane === "left") document.addEventListener("click", function (e) {
-      if (TOP.getAttribute("data-rb-active") !== "right" || !e.target.closest("[data-rb-tlist]")) return;
+    // list clicked on the left while the right side is active -> open that chat on the right instead
+    document.addEventListener("click", function (e) {
+      if (pane !== "left" || active !== "right" || !e.target.closest("[data-rb-tlist]")) return;
       var before = location.pathname, tries = 0;
       var t = setInterval(function () {
         if (++tries > 40) return clearInterval(t);
         if (location.pathname === before || !/^\/direct\/t\//.test(location.pathname)) return;
         clearInterval(t);
-        window.top.document.querySelector('iframe[data-rb-pane="right"]').contentWindow.location.replace(location.pathname);
+        api.runtime.sendMessage({ type: "split-open", path: location.pathname });
         history.back(); // left side goes back to the chat it had
       }, 100);
     }, true);

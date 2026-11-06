@@ -17,8 +17,11 @@ chrome.storage.sync.get(GO_DEFAULTS, s => {
 });
 
 document.getElementById('test').onclick = () => chrome.runtime.sendMessage({ type: 'test' });
-// Instagram with two chats side by side, in a new tab
-document.getElementById('split').onclick = () => chrome.tabs.create({ url: 'https://www.instagram.com/direct/inbox/#split' });
+// Instagram with two chats side by side: two windows, left and right half of the screen
+document.getElementById('split').onclick = () => {
+  chrome.runtime.sendMessage({ type: 'split', screen: { left: screen.availLeft || 0, top: screen.availTop || 0, width: screen.availWidth, height: screen.availHeight } });
+  window.close();
+};
 
 // Gmail important senders
 chrome.storage.sync.get(GO_DEFAULTS, s => {
