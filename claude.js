@@ -12,20 +12,31 @@
 
   let busy = false, busySince = 0, timer = null;
 
+  // After the extension is reloaded or updated, this old copy of the script is cut off from it and
+  // sending a message throws "Extension context invalidated". Then stop quietly;
+  // background.js puts a fresh copy into every open claude.ai tab.
+  function send(msg) {
+    try {
+      if (chrome.runtime?.id) return chrome.runtime.sendMessage(msg).catch(() => {});
+    } catch (_) {}
+    observer.disconnect(); clearTimeout(timer);
+  }
+
   function check() {
     if (document.querySelector(BUSY)) {
-      if (!busy) { busy = true; busySince = Date.now(); chrome.runtime.sendMessage({ type: 'claude-busy' }); }
+      if (!busy) { busy = true; busySince = Date.now(); send({ type: 'claude-busy' }); }
       clearTimeout(timer); timer = null;
     } else if (busy && !timer) {
       // must stay idle 1.5 s, and must have worked at least 0.8 s, to count as done
       timer = setTimeout(() => {
         timer = null; busy = false;
-        if (Date.now() - busySince > 2300) chrome.runtime.sendMessage({ type: 'claude-done', title: document.title, looking: document.hasFocus() });
+        if (Date.now() - busySince > 2300) send({ type: 'claude-done', title: document.title, looking: document.hasFocus() });
       }, 1500);
     }
   }
   // MutationObserver keeps working in background tabs (timers get slowed down there)
-  new MutationObserver(check).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-is-streaming', 'aria-label', 'data-state', 'data-busy'] });
-  chrome.runtime.sendMessage({ type: 'claude-seen' });
+  const observer = new MutationObserver(check);
+  observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-is-streaming', 'aria-label', 'data-state', 'data-busy'] });
+  send({ type: 'claude-seen' });
   check();
 })();
