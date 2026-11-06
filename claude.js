@@ -14,7 +14,7 @@
 
   function check() {
     if (document.querySelector(BUSY)) {
-      if (!busy) { busy = true; busySince = Date.now(); }
+      if (!busy) { busy = true; busySince = Date.now(); chrome.runtime.sendMessage({ type: 'claude-busy' }); }
       clearTimeout(timer); timer = null;
     } else if (busy && !timer) {
       // must stay idle 1.5 s, and must have worked at least 0.8 s, to count as done
@@ -26,5 +26,6 @@
   }
   // MutationObserver keeps working in background tabs (timers get slowed down there)
   new MutationObserver(check).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-is-streaming', 'aria-label', 'data-state', 'data-busy'] });
+  chrome.runtime.sendMessage({ type: 'claude-seen' });
   check();
 })();

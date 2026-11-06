@@ -33,6 +33,11 @@ chrome.windows.onRemoved.addListener(async id => {
 });
 
 chrome.runtime.onMessage.addListener(async (msg, sender) => {
+  // status line in the popup, to see what the extension noticed on claude.ai
+  if (msg.type === 'claude-seen' || msg.type === 'claude-busy' || msg.type === 'claude-done') {
+    const now = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    chrome.storage.session.set({ ['claude-' + msg.type.split('-')[1]]: now });
+  }
   if (msg.type === 'claude-done') {
     const { claudeMode } = await chrome.storage.sync.get(GO_DEFAULTS);
     const win = await chrome.windows.getLastFocused().catch(() => null);
