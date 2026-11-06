@@ -269,6 +269,18 @@
       var t = n.textContent; if (!t || t.length > 80) continue;
       if (/^reels?$|\b(sent|shared|forwarded) (you )?a (reel|post)\b|\b(reel|post) by\b/i.test(t.trim())) list.push(n);
     }
+    // Shared posts show as a big picture with a bold caption under it, with no link. Your friends' own
+    // photos never have a caption, so: big picture + bold caption in the same message = shared post.
+    if (/^\/direct\/t\//.test(location.pathname)) document.querySelectorAll("main img").forEach(function (img) {
+      if (img.closest("[data-rb-reelmsg]") || img.getBoundingClientRect().width < 150) return;
+      for (var node = img.parentElement, d = 0; node && d < 8 && node.tagName !== "MAIN"; node = node.parentElement, d++) {
+        if (node.textContent.length > 400 || node.querySelector('[role="textbox"], [contenteditable="true"]')) return;
+        var bold = Array.prototype.some.call(node.querySelectorAll("span, div"), function (n) {
+          return !n.childElementCount && (n.textContent || "").trim().length >= 20 && weight(n) >= 600;
+        });
+        if (bold) { list.push(node); node.setAttribute("data-rb-reelmsg", ""); return; }
+      }
+    });
     list.forEach(function (el) {
       if (el.closest("[data-rb-reelmsg]")) return;
       // Inbox/thread-list preview ("Bob sent a reel", "You sent a reel"): hide only that line, never the chat row.
@@ -313,6 +325,8 @@
         if (rad >= 8 && filled(cs)) { bubble = node; break; }
       }
       if (!bubble) { if (!t.getClientRects().length) t.removeAttribute("data-rb-seen"); continue; }
+      // voice notes, photos and other media keep Instagram's own look (plain-text style would erase the play button and waveform)
+      if (bubble.querySelector("svg, img, video, audio, canvas")) continue;
       // row = first ancestor clearly wider than the bubble
       var b = bubble.getBoundingClientRect(), row = bubble.parentElement;
       while (row && row.tagName !== "MAIN" && row.getBoundingClientRect().width < b.width * 1.6) row = row.parentElement;
