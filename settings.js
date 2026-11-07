@@ -3,12 +3,13 @@
 var GO_DEFAULTS = {
   // When Claude finishes a reply on claude.ai: "alert" (window you must click), "switch" (jump to the tab), "off"
   claudeMode: "alert",
-  // YouTube focus mode: only these channels play (one per line: @handle, name, or UC... id)
-  ytAllowChannels: "@veritasium\n@3blue1brown\n@TwoMinutePapers\n@aiexplained-official",
+  // YouTube focus mode: only these channels play (one per line: @handle, name, or UC... id).
+  // Add ": word word" after a channel to allow only its videos whose title has one of those words.
+  ytAllowChannels: "",
   // ...or any video whose title contains one of these words
   ytAllowKeywords: "",
   // Your YouTube home page shows the newest videos from these channels (they are also allowed)
-  ytEduChannels: "@3blue1brown\n@TheOrganicChemistryTutor\n@veritasium\n@kurzgesagt\n@minutephysics\n@numberphile\n@CrashCourse\n@khanacademy\n@smartereveryday\n@TwoMinutePapers",
+  ytEduChannels: "@numberphile\n@TheOrganicChemistryTutor: physics calculus derivative integral integration limits\n@TEDEd: riddle philosoph\n@mitocw\n@Baablu\n@ogmoe\n@Dewier",
   // Subscriptions cleanup on youtube.com/feed/channels keeps only these
   ytKeepSubs: "@veritasium\n@kurzgesagt\n@FlameFragsMC\n@wemmbumc\n@Spokeishere\n@ParrotX2"
 };
