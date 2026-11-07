@@ -459,13 +459,23 @@
   // ---------- YouTube focus mode ----------
   function norm(x) { return String(x || "").toLowerCase().replace(/^@/, "").replace(/[\s_.-]/g, ""); }
   function lines(x) { return String(x || "").split(/[\n,]+/).map(function (l) { return l.trim(); }).filter(Boolean); }
-  function allowSets() {
-    return { ch: lines(S.ytAllowChannels).concat(lines(S.ytEduChannels)).map(norm), kw: lines(S.ytAllowKeywords).map(function (k) { return k.toLowerCase(); }) };
+  // "@handle" allows the whole channel; "@handle: word word" only its videos whose title has one of the words
+  function entry(l) {
+    var i = l.indexOf(":");
+    return i < 0 ? { ch: norm(l), only: [] } : { ch: norm(l.slice(0, i)), only: l.slice(i + 1).toLowerCase().split(/\s+/).filter(Boolean) };
   }
-  // ids: array of channel identifiers (handle, UC id, display name). title: video title.
+  function allowSets() {
+    return { ch: lines(S.ytAllowChannels).concat(lines(S.ytEduChannels)).map(entry), kw: lines(S.ytAllowKeywords).map(function (k) { return k.toLowerCase(); }) };
+  }
+  // ids: array of channel identifiers (handle, UC id, display name). title: video title, or null for a channel page.
   function isAllowed(ids, title, A) {
-    for (var i = 0; i < ids.length; i++) if (ids[i] && A.ch.indexOf(norm(ids[i])) >= 0) return true;
-    title = String(title || "").toLowerCase();
+    var t = String(title || "").toLowerCase();
+    for (var i = 0; i < ids.length; i++) for (var j = 0; j < A.ch.length; j++) {
+      var e = A.ch[j];
+      if (!ids[i] || e.ch !== norm(ids[i])) continue;
+      if (!e.only.length || title === null || e.only.some(function (w) { return t.indexOf(w) >= 0; })) return true;
+    }
+    title = t;
     for (var k = 0; k < A.kw.length; k++) if (title && title.indexOf(A.kw[k]) >= 0) return true;
     return false;
   }
@@ -535,7 +545,7 @@
     if (chIds.length) {
       var name = document.querySelector("ytd-c4-tabbed-header-renderer #channel-name, yt-page-header-view-model h1, #page-header h1");
       if (name) chIds.push(name.textContent.trim());
-      if (isAllowed(chIds, "", A)) showBlock(null); else { showBlock("Channel blocked during focus time"); pauseAll(); }
+      if (isAllowed(chIds, null, A)) showBlock(null); else { showBlock("Channel blocked during focus time"); pauseAll(); }
       return;
     }
     showBlock(null);
@@ -615,14 +625,15 @@
     if (!edu.el) { edu.el = document.createElement("div"); edu.el.id = "rb-edu-home"; edu.el.style.cssText = "padding:24px;max-width:1700px;margin:0 auto;color:var(--yt-spec-text-primary,#0f0f0f)"; }
     if (edu.el.parentElement !== host) host.insertBefore(edu.el, host.firstChild);
     edu.el.style.display = "";
-    var handles = lines(S.ytEduChannels), key = handles.join("|");
+    var list = lines(S.ytEduChannels), key = list.join("|");
+    var handles = list.map(function (l) { return l.split(":")[0].trim(); }), A = allowSets();
     if (edu.key === key) return;
     edu.key = key; edu.loading = true; edu.items = []; renderEdu();
     loadFeed(handles).then(function (res) {
       if (edu.key !== key) return;
       edu.loading = false;
       edu.errors = res.filter(function (r) { return r.err; }).map(function (r) { return r.h; });
-      edu.items = [].concat.apply([], res.map(function (r) { return r.vids; })).sort(function (a, b) { return b.date - a.date; });
+      edu.items = [].concat.apply([], res.map(function (r) { return r.vids.filter(function (v) { return isAllowed([r.h], v.title, A); }); })).sort(function (a, b) { return b.date - a.date; });
       renderEdu();
     });
   }
