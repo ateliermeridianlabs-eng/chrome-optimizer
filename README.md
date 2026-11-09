@@ -3,7 +3,7 @@
 Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to edit:
 
 1. **Google Optimizer**: one Chrome extension (files in the repo root) that blocks distracting content, alerts you when Claude finishes a reply, and pins important Gmail at the top.
-2. **Minecraft Blocker** (`minecraft-blocker/`): a macOS background service that closes Minecraft Launcher, Lunar Client and the Minecraft game.
+2. **Photo Booth Blocker** (`minecraft-blocker/`): a macOS background service that closes Photo Booth, with an on/off app. (It used to block Minecraft.)
 
 > **Start here if you are new:** read "Current state" below first. The newest code is on `main`.
 
@@ -20,9 +20,9 @@ Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to 
 | Facebook and Threads gone | Pages are replaced with "Facebook is blocked" / "Threads is blocked". |
 | Know when Claude is done | On claude.ai (chat and Claude Code pages), when a reply finishes: **Alert me** (a window that stays until clicked), **Switch to it** (jumps to the Claude tab), or **Off**. Nothing happens if you are already on that tab. |
 | Important Gmail first | An "Important" section at the top of the Gmail inbox with mail from chosen senders. |
-| No Minecraft | Minecraft Launcher, Lunar Client and the Java game are force-quit within 2 seconds; Dock icons removed. |
+| No Photo Booth | Photo Booth is force-quit within 2 seconds; Dock icon removed. The "Photo Booth Blocker" app turns this on/off (needs the Mac password). Minecraft rules are kept, commented out. |
 
-Blocking has **no on/off switch on purpose**. The only choices in the popup are the Claude finish mode, the YouTube lists and the Gmail sender list.
+The extension's blocking has **no on/off switch on purpose** (only the Photo Booth Blocker has one). The only choices in the popup are the Claude finish mode, the YouTube lists and the Gmail sender list.
 
 Default YouTube "subscriptions to keep": @veritasium, @kurzgesagt, @FlameFragsMC, @wemmbumc, @Spokeishere, @ParrotX2.
 
@@ -40,6 +40,7 @@ Everything is merged into `main` (v3.5.3). Old work branches (`center-chat-names
 | #2 | Gmail Important section (merged into #1's branch) |
 | #3 | v3.5.3: fixes the "Extension context invalidated" error, re-injects the Claude watcher into open tabs after a reload |
 | #4 | This README and the Minecraft Blocker |
+| (new) | Blocker switched from Minecraft to Photo Booth, plus an on/off app |
 
 ### Done
 - Everything in the Goals table is built (extension v3.5.3, Minecraft Blocker v1).
@@ -54,7 +55,7 @@ Everything is merged into `main` (v3.5.3). Old work branches (`center-chat-names
 - **Instagram cannot be shown inside a frame** (it shows "page isn't available"), so side-by-side uses two real windows, not one tab.
 - **Scrolling the tab strip is not possible**: Chrome does not let extensions change the tab bar.
 - **Bookmarks scroll panel**: offered, not built.
-- **Minecraft Blocker** was tested with simulated processes on Linux only, never on a real Mac. The Dock cleanup has never run.
+- **Photo Booth Blocker** was tested with simulated processes on Linux only, never on a real Mac. The Dock cleanup and the on/off app have never run.
 - **Admin accounts can remove everything** (extension, lockdown profile, Minecraft Blocker). Real protection needs a Standard everyday account with someone else holding the admin password.
 
 ---
@@ -72,7 +73,7 @@ To update: replace the folder's files with the new ones, then click the reload a
 ### Optional: make it hard to remove
 `lockdown/make-lockdown-profile.command` builds a macOS profile (needs a removal password, ideally typed by someone else). Run it in Terminal: `bash path/to/lockdown/make-lockdown-profile.command`, then open the `.mobileconfig` file it puts on your Desktop. It reuses the old Reels Blocker profile identifier, so it replaces that profile instead of adding a second one.
 
-## Install the Minecraft Blocker (macOS)
+## Install the Photo Booth Blocker (macOS)
 
 Don't double-click (macOS refuses downloaded scripts). In Terminal:
 
@@ -80,7 +81,7 @@ Don't double-click (macOS refuses downloaded scripts). In Terminal:
 bash path/to/minecraft-blocker/install.command
 ```
 
-Type your Mac password (nothing shows while typing). Remove later with `bash /Library/MinecraftBlocker/uninstall.command`. Details in [`minecraft-blocker/README.md`](minecraft-blocker/README.md).
+Type your Mac password (nothing shows while typing). Turn it on/off with the **Photo Booth Blocker** app (Cmd+Space). Remove later with `bash /Library/MinecraftBlocker/uninstall.command`. Details in [`minecraft-blocker/README.md`](minecraft-blocker/README.md).
 
 ---
 
@@ -98,12 +99,12 @@ Type your Mac password (nothing shows while typing). Remove later with `bash /Li
 | `hud.html` / `hud.js` | The "Claude finished" alert window. |
 | `icons/` | Extension icons. |
 | `lockdown/` | Script that builds the macOS lockdown profile. |
-| `minecraft-blocker/` | `blocker.sh` (the watcher; edit `PATTERNS` to change what is blocked), `install.command`, `uninstall.command`, the LaunchDaemon `.plist`. |
+| `minecraft-blocker/` | `blocker.sh` (the watcher; edit `PATTERNS` to change what is blocked), `switch.applescript` (the on/off app), `install.command`, `uninstall.command`, the LaunchDaemon `.plist`. |
 
 ## Working on this repo
 
 - Keep code simple and readable; the owner edits it by hand.
-- Don't add on/off toggles for blocking.
+- Don't add on/off toggles for the extension's blocking. (The Photo Booth Blocker's on/off app was asked for by the owner.)
 - Make changes on a branch and open a pull request. Don't push straight to `main`.
 - Bump `version` in `manifest.json` with each extension change.
 - Say in the PR what was tested and where (mock page vs live site).

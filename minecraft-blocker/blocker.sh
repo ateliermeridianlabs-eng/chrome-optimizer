@@ -1,36 +1,34 @@
 #!/bin/bash
-# Minecraft Blocker: force-quits Minecraft Launcher, Lunar Client and the Minecraft Java game.
+# App Blocker: force-quits Photo Booth (the Minecraft rules are still below, commented out).
 # Runs as root in the background (started by /Library/LaunchDaemons/local.minecraftblocker.plist).
 #
 # TO EDIT: add or remove lines in PATTERNS below, then run install.command again.
 # Each line is matched against a process's FULL command line (path + arguments),
-# so other Java apps are left alone: only processes that contain one of these are killed.
+# so other apps are left alone: only processes that contain one of these are killed.
+#
+# ON/OFF: while the file /Library/MinecraftBlocker/off exists, nothing is blocked.
+# The "Photo Booth Blocker" app in /Applications creates/deletes that file (asks for the Mac password).
 
 PATTERNS=(
-  # --- Launchers (the .app bundles and all their helper processes) ---
-  'Minecraft\.app/'                      # Minecraft Launcher
-  'Lunar Client\.app/'                   # Lunar Client
-  # --- The Minecraft Java game itself, whatever launched it ---
-  'net\.minecraft\.client\.main\.Main'   # vanilla game main class
-  'minecraft\.launcher\.brand'           # flag the official launcher passes to the game
-  'Application Support/minecraft/'       # game files of the official launcher
-  'com\.moonsworth\.'                    # Lunar Client's game code
-  '\.lunarclient/'                       # Lunar Client's game files and Java runtime
-  'net\.fabricmc\.loader\.impl\.launch'  # Fabric modded Minecraft
-  'cpw\.mods\.'                          # Forge modded Minecraft
-  # --- Other launchers: remove the # to block them too ---
-  # 'Badlion Client\.app/'
-  # 'Feather Launcher\.app/'
-  # 'Prism Launcher\.app/'
-  # 'CurseForge\.app/'
-  # 'Modrinth App\.app/'
+  'Photo Booth\.app/'                    # Photo Booth
+  # --- Minecraft: remove the # to block it again ---
+  # 'Minecraft\.app/'                      # Minecraft Launcher
+  # 'Lunar Client\.app/'                   # Lunar Client
+  # 'net\.minecraft\.client\.main\.Main'   # vanilla game main class
+  # 'minecraft\.launcher\.brand'           # flag the official launcher passes to the game
+  # 'Application Support/minecraft/'       # game files of the official launcher
+  # 'com\.moonsworth\.'                    # Lunar Client's game code
+  # '\.lunarclient/'                       # Lunar Client's game files and Java runtime
+  # 'net\.fabricmc\.loader\.impl\.launch'  # Fabric modded Minecraft
+  # 'cpw\.mods\.'                          # Forge modded Minecraft
 )
 
 CHECK_EVERY=2   # seconds between checks
 LOG=/var/log/minecraftblocker.log
+OFF_FLAG=/Library/MinecraftBlocker/off   # exists = blocking is switched off
 
 # Dock icons to remove (matched against the app's file URL; a space is written %20)
-DOCK_APPS='Minecraft\.app|Lunar%20Client\.app'
+DOCK_APPS='Photo%20Booth\.app'   # Minecraft was: 'Minecraft\.app|Lunar%20Client\.app'
 DOCK_EVERY=15   # check the Dock every 15 rounds (about 30 seconds)
 
 # Removes matching icons from the Dock of whoever is logged in, then restarts the Dock.
@@ -62,6 +60,7 @@ clean_dock() {
 
 round=0
 while true; do
+  if [ -e "$OFF_FLAG" ]; then sleep "$CHECK_EVERY"; continue; fi
   if (( round % DOCK_EVERY == 0 )); then clean_dock; fi
   round=$((round+1))
   for p in "${PATTERNS[@]}"; do
