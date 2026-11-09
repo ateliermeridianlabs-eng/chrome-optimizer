@@ -1,6 +1,6 @@
 -- "Photo Booth Blocker" app: turns the blocker on or off.
 -- install.command builds it into /Applications. Off = the file below exists.
-set flag to "/Library/MinecraftBlocker/off"
+set flag to "/Library/PhotoBoothBlocker/off"
 set isOff to (do shell script "[ -e " & flag & " ] && echo off || echo on") is "off"
 if isOff then
 	set btn to "Turn ON"

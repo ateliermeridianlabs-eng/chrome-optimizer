@@ -10,5 +10,4 @@ HOW TO INSTALL (don't double-click, macOS will refuse):
 Folder not in Downloads? Type "bash " (with a space), drag install.command
 into the Terminal window, press Enter.
 
-Turn it on/off: open the "Photo Booth Blocker" app (Cmd+Space).
 To remove later:  bash /Library/MinecraftBlocker/uninstall.command
