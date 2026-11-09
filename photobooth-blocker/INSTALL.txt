@@ -1,0 +1,14 @@
+HOW TO INSTALL (don't double-click, macOS will refuse):
+
+1. Open Terminal (Cmd+Space, type Terminal, press Enter).
+2. Paste this line and press Enter:
+
+   bash ~/Downloads/photobooth-blocker/install.command
+
+3. Type your Mac password (it stays invisible while typing) and press Enter.
+
+Folder not in Downloads? Type "bash " (with a space), drag install.command
+into the Terminal window, press Enter.
+
+Turn it on/off: open the "Photo Booth Blocker" app (Cmd+Space).
+To remove later:  bash /Library/PhotoBoothBlocker/uninstall.command
