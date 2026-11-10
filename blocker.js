@@ -512,13 +512,15 @@
   var CH_LINK = 'a[href^="/@"], a[href^="/channel/"], a[href^="/c/"], a[href^="/user/"]';
   function focusScan() {
     if (site !== "yt" || !loaded) return;
-    var A = allowSets(), p = location.pathname;
+    var A = allowSets(), p = location.pathname, pageIds = idsFromHref(p);
     // 1) Filter every video tile on any list page (search, subscriptions, channel, playlists, sidebar).
     document.querySelectorAll(ITEMS).forEach(function (it) {
       if (it.parentElement && it.parentElement.closest(ITEMS)) return; // nested renderer: judged by outer one
       var ids = [];
       it.querySelectorAll(CH_LINK).forEach(function (a) { ids = ids.concat(idsFromHref(a.getAttribute("href"))); });
       it.querySelectorAll("ytd-channel-name #text, #channel-name #text, #channel-title").forEach(function (n) { ids.push(n.textContent.trim()); });
+      // tiles on a channel's own page have no channel link: they belong to that channel
+      if (!ids.filter(Boolean).length) ids = pageIds;
       var t = it.querySelector("#video-title, a#video-title-link, h3");
       var ok = isAllowed(ids, t ? t.textContent : "", A);
       ok ? it.removeAttribute("data-rb-fhide") : it.setAttribute("data-rb-fhide", "");
