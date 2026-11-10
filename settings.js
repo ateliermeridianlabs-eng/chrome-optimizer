@@ -5,7 +5,7 @@ var GO_DEFAULTS = {
   claudeMode: "alert",
   // YouTube focus mode: only these channels play (one per line: @handle, name, or UC... id).
   // Add ": word word" after a channel to allow only its videos whose title has one of those words.
-  ytAllowChannels: "",
+  ytAllowChannels: "@ProfessorLeonard\n@TheOrganicChemistryTutor",
   // ...or any video whose title contains one of these words
   ytAllowKeywords: "",
   // Your YouTube home page shows the newest videos from these channels (they are also allowed)
