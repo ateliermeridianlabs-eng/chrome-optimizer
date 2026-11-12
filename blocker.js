@@ -56,14 +56,13 @@
           'a[href*="/p/"]', '[role="button"]:has(a[href*="/p/"])',
           '[data-rb-reelmsg]'
         ],
-        // Boring chat: grayscale, no photo/video upload. aria-labels are best guesses.
+        // Boring chat: grayscale, no new-post button. aria-labels are best guesses.
         igBoring: [
           // images, videos sent in chat, profile pictures, GIFs and stickers stay visible (shared reels/posts are still removed by igDmOnly).
           // "Create"/new post button
           'a:has(svg[aria-label="New post" i])', '[role="link"]:has(svg[aria-label="New post" i])',
           '[role="button"]:has(svg[aria-label="New post" i])', 'a[href^="/create/"]',
-          // voice messages (and their waveform) are allowed; emoji, GIF/sticker, voice-note and call buttons too; only photo/video upload stays hidden
-          'div[role="button"]:has(svg[aria-label*="Photo" i]):not(:has(svg[aria-label*="GIF" i]))', 'input[type="file"]',
+          // chat composer is untouched: emoji, GIF/sticker, voice-note, photo/video upload and call buttons all work
           // no profile pictures inside an open chat (the chat list keeps them)
           'html[data-rb-thread] main img:is([alt*="profile picture" i],[alt*="profile-picture" i]):not([data-rb-tlist] img)'
         ]
