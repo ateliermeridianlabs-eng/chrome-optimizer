@@ -56,11 +56,9 @@
           'a[href*="/p/"]', '[role="button"]:has(a[href*="/p/"])',
           '[data-rb-reelmsg]'
         ],
-        // Boring chat: grayscale, no plain videos, no photo upload. aria-labels are best guesses.
+        // Boring chat: grayscale, no photo/video upload. aria-labels are best guesses.
         igBoring: [
-          // images, profile pictures, GIFs and stickers stay visible. Real videos are hidden;
-          // looping videos are kept because GIFs are often delivered that way.
-          'video:not([loop])',
+          // images, videos sent in chat, profile pictures, GIFs and stickers stay visible (shared reels/posts are still removed by igDmOnly).
           // "Create"/new post button
           'a:has(svg[aria-label="New post" i])', '[role="link"]:has(svg[aria-label="New post" i])',
           '[role="button"]:has(svg[aria-label="New post" i])', 'a[href^="/create/"]',

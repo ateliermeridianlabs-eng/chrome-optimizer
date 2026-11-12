@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Google Optimizer",
-  "version": "3.5.7",
+  "version": "3.5.8",
   "description": "Locks Instagram to DMs, blocks Shorts, Facebook and Threads, keeps YouTube in focus mode, and tells you when Claude finishes.",
   "permissions": [
     "storage",
