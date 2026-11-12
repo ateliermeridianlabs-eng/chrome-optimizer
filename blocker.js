@@ -29,7 +29,7 @@
     ig: {
       // Return a URL to redirect to, or null to allow.
       redirect: function (p) {
-        if (!/^\/(direct|accounts|challenge|two_factor|api|ajax|graphql|session|oauth|auth_platform|legal|privacy)(\/|$)/.test(p))
+        if (!/^\/(direct|call|accounts|challenge|two_factor|api|ajax|graphql|session|oauth|auth_platform|legal|privacy)(\/|$)/.test(p))
           return "/direct/inbox/";
         if (/^\/reels?(\/|$)/.test(p)) return "/";
         var m = p.match(/^\/([^\/]+)\/reels\/?$/);           // profile Reels tab
@@ -99,6 +99,8 @@
         set("data-rb-dm", /^\/direct\//.test(p));
         set("data-rb-thread", /^\/direct\/t\//.test(p));
         set("data-rb-home", p === "/");
+        // audio/video calls open in their own /call/ window: don't hide or grey out the call video there
+        if (/^\/call(\/|$)/.test(p)) set("data-rb-igBoring", false);
       },
       extraScan: function () {
         hideNotes();
