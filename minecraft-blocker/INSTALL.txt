@@ -10,4 +10,7 @@ HOW TO INSTALL (don't double-click, macOS will refuse):
 Folder not in Downloads? Type "bash " (with a space), drag install.command
 into the Terminal window, press Enter.
 
+This also creates the on/off app "Minecraft Blocker" in ~/Applications
+(open it with Spotlight: Cmd+Space, type Minecraft Blocker).
+
 To remove later:  bash /Library/MinecraftBlocker/uninstall.command

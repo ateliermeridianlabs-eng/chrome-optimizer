@@ -21,7 +21,13 @@ sudo chmod 644 "$PLIST"
 # Lock the files so they can't be edited or deleted, even with sudo, until unlocked
 sudo chflags schg "$DIR/blocker.sh" "$PLIST"
 
+# The on/off app may have switched it off earlier; make sure it is allowed to start
+sudo launchctl enable system/local.minecraftblocker
 sudo launchctl bootstrap system "$PLIST"
+
+# Build the on/off app (~/Applications/Minecraft Blocker.app)
+bash ./make-app.command
 echo
 echo "Done. Minecraft Launcher, Lunar Client and the Minecraft game now get closed within 2 seconds."
+echo "To turn it off or on later, open the app: Minecraft Blocker (admin password needed)."
 echo "Log of what was closed: /var/log/minecraftblocker.log"

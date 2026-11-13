@@ -10,4 +10,6 @@ sudo chflags -f noschg "$DIR/blocker.sh" "$PLIST"
 sudo launchctl bootout system "$PLIST" 2>/dev/null
 sudo rm -f "$PLIST"
 sudo rm -rf "$DIR"
+sudo launchctl enable system/local.minecraftblocker 2>/dev/null   # clear the "off" setting
+rm -rf "$HOME/Applications/Minecraft Blocker.app"
 echo "Removed."

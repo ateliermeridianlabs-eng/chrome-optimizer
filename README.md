@@ -22,7 +22,7 @@ Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to 
 | Important Gmail first | An "Important" section at the top of the Gmail inbox with mail from chosen senders. |
 | No Minecraft | Minecraft Launcher, Lunar Client and the Java game are force-quit within 2 seconds; Dock icons removed. |
 
-Blocking has **no on/off switch on purpose**. The only choices in the popup are the Claude finish mode, the YouTube lists and the Gmail sender list.
+The extension has **no on/off switch on purpose**. (The Minecraft Blocker does have one, an app that needs the admin password, added on request 13 Nov 2026.) The only choices in the popup are the Claude finish mode, the YouTube lists and the Gmail sender list.
 
 Default YouTube "subscriptions to keep": @veritasium, @kurzgesagt, @FlameFragsMC, @wemmbumc, @Spokeishere, @ParrotX2.
 
@@ -98,12 +98,12 @@ Type your Mac password (nothing shows while typing). Remove later with `bash /Li
 | `hud.html` / `hud.js` | The "Claude finished" alert window. |
 | `icons/` | Extension icons. |
 | `lockdown/` | Script that builds the macOS lockdown profile. |
-| `minecraft-blocker/` | `blocker.sh` (the watcher; edit `PATTERNS` to change what is blocked), `install.command`, `uninstall.command`, the LaunchDaemon `.plist`. |
+| `minecraft-blocker/` | `blocker.sh` (the watcher; edit `PATTERNS` to change what is blocked), `install.command`, `uninstall.command`, the LaunchDaemon `.plist`, `toggle.sh` + `make-app.command` (the on/off app). |
 
 ## Working on this repo
 
 - Keep code simple and readable; the owner edits it by hand.
-- Don't add on/off toggles for blocking.
+- Don't add on/off toggles to the extension (the Minecraft Blocker app is the one exception).
 - Make changes on a branch and open a pull request. Don't push straight to `main`.
 - Bump `version` in `manifest.json` with each extension change.
 - Say in the PR what was tested and where (mock page vs live site).
