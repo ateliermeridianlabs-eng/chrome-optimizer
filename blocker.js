@@ -69,7 +69,9 @@
       },
       rawCss: {
         // No story rings: Instagram draws the circle around a profile picture as a <canvas> next to the <img>.
-        igRings: "html[data-rb-igrings] :has(> canvas):has(img[alt*='profile picture' i]) > canvas{visibility:hidden!important}",
+        // In the chat list the ring sits outside the (shrunk) avatar box, so hide every canvas in the list too.
+        igRings: "html[data-rb-igrings] :has(> canvas):has(img:is([alt*='profile picture' i],[alt*='profile-picture' i])) > canvas," +
+          "html[data-rb-igrings] [data-rb-tlist] canvas{display:none!important}",
         // Grayscale only media, so unread red dots keep their colour.
         igBoring: "html[data-rb-igboring] :is(img,video,canvas,svg image){filter:grayscale(1)!important}" +
           "html[data-rb-igboring] *,html[data-rb-igboring] *::before,html[data-rb-igboring] *::after{animation:none!important;transition:none!important}" +
