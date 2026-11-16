@@ -127,12 +127,21 @@
           'ytm-shorts-lockup-view-model', 'ytm-pivot-bar-item-renderer:has(.pivot-shorts)'
         ],
         ytEduHome: ['ytd-browse[page-subtype="home"] #primary', 'ytd-browse[page-subtype="home"] ytd-rich-grid-renderer'],
-        // Focus mode: no home feed, no recommendations next to / under the video, no comments.
+        // Focus mode: no home feed, no comments. The sidebar next to the video shows only
+        // videos from allowed channels (tiles without data-rb-fok stay hidden).
         focus: [
-          'ytd-browse[page-subtype="home"] #primary', 'ytd-watch-flexy #secondary',
-          'ytd-watch-flexy #related', 'ytd-watch-flexy #comments', '.ytp-endscreen-content',
+          'ytd-browse[page-subtype="home"] #primary', 'ytd-watch-flexy #secondary-inner > :not(#related)',
+          'ytd-watch-flexy #related :is(ytd-compact-video-renderer, yt-lockup-view-model, ytd-compact-playlist-renderer,' +
+            ' ytd-compact-radio-renderer, ytd-compact-movie-renderer, ytd-video-renderer, ytd-rich-item-renderer):not([data-rb-fok])',
+          'ytd-watch-flexy #related :is(ytd-ad-slot-renderer, yt-related-chip-cloud-renderer, yt-chip-cloud-renderer, ytd-reel-shelf-renderer)',
+          'ytd-watch-flexy #comments', '.ytp-endscreen-content',
           '.ytp-ce-element', '.ytp-autonav-endscreen-countdown-overlay', 'ytd-guide-section-renderer:has(a[href="/feed/trending"])'
         ]
+      },
+      // YouTube's own video grids (subscriptions, channel pages): 3 per row
+      rawCss: {
+        ytGrid: 'html[data-rb-ytGrid] ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:3!important;--ytd-rich-grid-posts-per-row:3!important}' +
+          '\nhtml[data-rb-ytGrid] ytd-rich-grid-row, html[data-rb-ytGrid] ytd-rich-grid-row > #contents{display:contents!important}'
       },
       textRules: function () { return []; },
       flags: function () {},
@@ -523,6 +532,9 @@
       var t = it.querySelector("#video-title, a#video-title-link, h3");
       var ok = isAllowed(ids, t ? t.textContent : "", A);
       ok ? it.removeAttribute("data-rb-fhide") : it.setAttribute("data-rb-fhide", "");
+      [it].concat(Array.prototype.slice.call(it.querySelectorAll(ITEMS))).forEach(function (x) {
+        ok ? x.setAttribute("data-rb-fok", "") : x.removeAttribute("data-rb-fok");
+      });
     });
     // 2) Watch page: decide on the current video; fail closed until the owner is known.
     if (p === "/watch") {
@@ -606,15 +618,18 @@
       (edu.errors.length ? " Could not find: " + edu.errors.join(", ") + "." : "");
     el.appendChild(h); el.appendChild(sub);
     var grid = document.createElement("div");
-    grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px 16px";
+    grid.style.cssText = "display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 16px";
     (edu.items || []).slice(0, 48).forEach(function (v) {
       var a = document.createElement("a"); a.href = "/watch?v=" + v.id; a.className = "rb-edu-card";
       a.style.cssText = "text-decoration:none;color:inherit;font-family:Roboto,Arial,sans-serif";
       var img = document.createElement("img"); img.src = "https://i.ytimg.com/vi/" + v.id + "/mqdefault.jpg";
-      img.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block";
-      var t = document.createElement("div"); t.textContent = v.title; t.style.cssText = "font:500 15px/1.35 Roboto,Arial,sans-serif;margin-top:8px;color:var(--yt-spec-text-primary,#0f0f0f)";
-      var m = document.createElement("div"); m.textContent = v.ch + " · " + ago(v.date); m.style.cssText = "font-size:13px;color:#888;margin-top:2px";
-      a.appendChild(img); a.appendChild(t); a.appendChild(m); grid.appendChild(a);
+      img.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;display:block";
+      var t = document.createElement("div"); t.textContent = v.title; t.title = v.title;
+      t.style.cssText = "font:500 16px/22px Roboto,Arial,sans-serif;margin-top:12px;color:var(--yt-spec-text-primary,#0f0f0f);" +
+        "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden";
+      var c = document.createElement("div"); c.textContent = v.ch; c.style.cssText = "font:14px/20px Roboto,Arial,sans-serif;color:var(--yt-spec-text-secondary,#606060);margin-top:4px";
+      var m = document.createElement("div"); m.textContent = ago(v.date); m.style.cssText = "font:14px/20px Roboto,Arial,sans-serif;color:var(--yt-spec-text-secondary,#606060)";
+      a.appendChild(img); a.appendChild(t); a.appendChild(c); a.appendChild(m); grid.appendChild(a);
     });
     el.appendChild(grid);
   }
