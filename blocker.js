@@ -144,6 +144,9 @@
       },
       // YouTube's own video grids (subscriptions, channel pages): 3 per row
       rawCss: {
+        // Home feed text colour: YouTube's colour variables are not set where the feed sits, so pick it from the theme.
+        ytEduText: 'html[data-rb-ytedutext] #rb-edu-home{color:#0f0f0f!important}' +
+          '\nhtml[data-rb-ytedutext][dark] #rb-edu-home{color:#f1f1f1!important}',
         ytGrid: 'html[data-rb-ytGrid] ytd-rich-grid-renderer{--ytd-rich-grid-items-per-row:3!important;--ytd-rich-grid-posts-per-row:3!important}' +
           '\nhtml[data-rb-ytGrid] ytd-rich-grid-row, html[data-rb-ytGrid] ytd-rich-grid-row > #contents{display:contents!important}'
       },
@@ -629,7 +632,7 @@
       var img = document.createElement("img"); img.src = "https://i.ytimg.com/vi/" + v.id + "/mqdefault.jpg";
       img.style.cssText = "width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;display:block";
       var t = document.createElement("div"); t.textContent = v.title; t.title = v.title;
-      t.style.cssText = "font:500 16px/22px Roboto,Arial,sans-serif;margin-top:12px;color:var(--yt-spec-text-primary,#0f0f0f);" +
+      t.style.cssText = "font:500 16px/22px Roboto,Arial,sans-serif;margin-top:12px;color:inherit;" +
         "display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden";
       var c = document.createElement("div"); c.textContent = v.ch; c.style.cssText = "font:14px/20px Roboto,Arial,sans-serif;color:var(--yt-spec-text-secondary,#606060);margin-top:4px";
       var m = document.createElement("div"); m.textContent = ago(v.date); m.style.cssText = "font:14px/20px Roboto,Arial,sans-serif;color:var(--yt-spec-text-secondary,#606060)";
@@ -642,7 +645,7 @@
     if (!on) { if (edu.el) edu.el.style.display = "none"; return; }
     var host = document.querySelector('ytd-browse[page-subtype="home"]');
     if (!host) return;
-    if (!edu.el) { edu.el = document.createElement("div"); edu.el.id = "rb-edu-home"; edu.el.style.cssText = "padding:24px;max-width:1700px;margin:0 auto;color:var(--yt-spec-text-primary,#0f0f0f)"; }
+    if (!edu.el) { edu.el = document.createElement("div"); edu.el.id = "rb-edu-home"; edu.el.style.cssText = "padding:24px;max-width:1700px;margin:0 auto"; }
     if (edu.el.parentElement !== host) host.insertBefore(edu.el, host.firstChild);
     edu.el.style.display = "";
     var list = lines(S.ytEduChannels), key = list.join("|");
