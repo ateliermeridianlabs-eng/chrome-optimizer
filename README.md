@@ -16,7 +16,7 @@ Personal anti-distraction tools for **Chrome on a Mac**, kept small and easy to 
 | Instagram only for DMs | Every page except `/direct/...` (and login pages) redirects to the inbox. Reels are blocked everywhere, including reels and shared posts sent in DMs, both ways. |
 | Clean DM look | Compact chat list with colour profile pictures, names centred on the picture, a preview only for chats with new messages, no notes bar. Messages show as plain text (no bubbles). Voice notes still work. |
 | Two chats at once | Popup button "Open 2 chats side by side" opens two Instagram windows, left and right half of the screen. |
-| YouTube without junk | Shorts blocked. Focus mode: only allowed channels, home-feed channels, or videos whose title has an allowed keyword will play. Home page shows your educational channels. Subscriptions page keeps only the "keep" list. |
+| YouTube without junk | Shorts blocked. Focus mode: only allowed channels, home-feed channels, videos whose title has an allowed keyword, or videos on always-allowed topics (Fusion 360 / CAD, propellers, wings, drones and drone programming; list in `settings.js` `GO_YT_TOPICS`) will play. Home page shows your educational channels. Subscriptions page keeps only the "keep" list. |
 | Facebook and Threads gone | Pages are replaced with "Facebook is blocked" / "Threads is blocked". |
 | Know when Claude is done | On claude.ai (chat and Claude Code pages), when a reply finishes: **Alert me** (a window that stays until clicked), **Switch to it** (jumps to the Claude tab), or **Off**. Nothing happens if you are already on that tab. |
 | Important Gmail first | An "Important" section at the top of the Gmail inbox with mail from chosen senders. |

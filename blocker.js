@@ -482,6 +482,9 @@
   function allowSets() {
     return { ch: lines(S.ytAllowChannels).concat(lines(S.ytEduChannels)).map(entry), kw: lines(S.ytAllowKeywords).map(function (k) { return k.toLowerCase(); }) };
   }
+  // Always-allowed topics (settings.js GO_YT_TOPICS), matched as whole words in the title
+  var TOPIC_RE = typeof GO_YT_TOPICS !== "undefined" && GO_YT_TOPICS.length
+    ? new RegExp("(^|[^a-z0-9])(" + GO_YT_TOPICS.join("|") + ")(?![a-z0-9])", "i") : null;
   // ids: array of channel identifiers (handle, UC id, display name). title: video title, or null for a channel page.
   function isAllowed(ids, title, A) {
     var t = String(title || "").toLowerCase();
@@ -491,6 +494,7 @@
       if (!e.only.length || title === null || e.only.some(function (w) { return t.indexOf(w) >= 0; })) return true;
     }
     title = t;
+    if (title && TOPIC_RE && TOPIC_RE.test(title)) return true;
     for (var k = 0; k < A.kw.length; k++) if (title && title.indexOf(A.kw[k]) >= 0) return true;
     return false;
   }
@@ -513,7 +517,7 @@
     var until = "Focus mode is always on.";
     overlay.innerHTML = "";
     var h = document.createElement("div"); h.style.cssText = "font-size:28px;font-weight:700;margin-bottom:10px"; h.textContent = msg;
-    var p = document.createElement("div"); p.style.color = "#aaa"; p.textContent = until + " Only allowlisted channels play.";
+    var p = document.createElement("div"); p.style.color = "#aaa"; p.textContent = until + " Only allowlisted channels and topics play.";
     var a = document.createElement("a"); a.href = "/feed/subscriptions"; a.textContent = "Go to subscriptions";
     a.style.cssText = "margin-top:18px;color:#3ea6ff";
     overlay.appendChild(h); overlay.appendChild(p); overlay.appendChild(a);
